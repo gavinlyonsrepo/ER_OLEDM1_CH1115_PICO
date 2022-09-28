@@ -62,7 +62,7 @@ int main() {
 
     framerate++;
     count++;
-    if (count == 5000)
+    if (count == 10000)
     {
       myOLED.OLEDPowerDown(); // Switch off OLED when test over
       while(1){busy_wait_ms(100);} // wait here for ever
@@ -105,7 +105,7 @@ void display_Left(CH1115MultiBuffer* targetbuffer, long currentFramerate, int co
   myOLED.print(fps);
   myOLED.print(" fps");
   myOLED.setCursor(0, 50);
-  myOLED.print("Ver 1.0");
+  myOLED.print("Ver 1.3");
   myOLED.drawFastVLine(92, 0, 63, FOREGROUND);
   myOLED.OLEDupdate();
 }
@@ -118,8 +118,8 @@ void display_Right(CH1115MultiBuffer* targetbuffer)
   myOLED.setCursor(0, 0);
   myOLED.print("RHS buffer");
 
-  myOLED.fillRect(0, 10, 20, 20-(count/200), colour);
-  myOLED.fillCircle(40, 20, count/200, !colour);
+  myOLED.fillRect(0, 10, 20, 20, colour);
+  myOLED.fillCircle(40, 20, 10, !colour);
   myOLED.drawRoundRect(10, 40, 40, 20, 10, FOREGROUND);
 
   myOLED.OLEDupdate();

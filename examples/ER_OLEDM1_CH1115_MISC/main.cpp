@@ -259,7 +259,7 @@ void  DisplayGraphics(CH1115MultiBuffer* targetBuffer)
   uint8_t count = 0;
   myOLED.ActiveBuffer =  targetBuffer;   // Set the buffer struct object
   myOLED.OLEDclearBuffer(); // Clear the buffer
-  while (count < 15)
+  while (count < 50)
   {
     colour = !colour;
 
