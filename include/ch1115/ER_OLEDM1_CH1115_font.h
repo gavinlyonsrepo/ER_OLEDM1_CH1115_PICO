@@ -9,15 +9,12 @@
 #ifndef _ER_OLEDM1_CH1115_font_H
 #define _ER_OLEDM1_CH1115_font_H
 
- 
-#define CH1115_Font_One  // (1) default  (FUll ASCII with mods)
-#define CH1115_Font_Two  // (2) thick (NO LOWERCASE)
-#define CH1115_Font_Three // (3) seven segment 
-#define CH1115_Font_Four // (4) wide (NO LOWERCASE)
-#define CH1115_Font_Five // (5) big numbers (NUMBERS ONLY )
+// (1) default  (FUll ASCII with mods)
+// (2) thick (NO LOWERCASE)
+// (3) seven segment 
+// (4) wide (NO LOWERCASE)
+// (5) big numbers (NUMBERS ONLY )
 
-
-#ifdef CH1115_Font_One
 
 // *******USER FONT OPTION TWO *************
 // Comment these define in to decrease size of full ASCII font.
@@ -286,9 +283,6 @@ static const unsigned char CH_Font_One[]  = {
 #endif
 };
 
-#endif //font one
-
-#ifdef CH1115_Font_Two
 
 // ASCII font file : "THICK" Font 7 by 8 
 // Define the ASCII table as Data array
@@ -357,11 +351,6 @@ static const  unsigned char CH_Font_Two[] = {
 	0x07,0x0f,0x7c,0x78,0x7c,0x0f,0x07, // Y
 	0x73,0x7b,0x6b,0x6b,0x6b,0x6f,0x67, // Z
 };
-
-#endif //font Two
-
-
-#ifdef CH1115_Font_Three
 
 // ASCII font file : "Seven Segment" 4 by 8 
 // Define the ASCII table as Data array
@@ -463,10 +452,6 @@ static const  unsigned char CH_Font_Three[] = {
 	0x30,0x49,0x49,0x06, // z
 };
 
-#endif //font Three
-
-
-#ifdef CH1115_Font_Four
 // ASCII font file : "Wide" font 8 by 8 
 // Define the ASCII table as Data array
 // cols left to right 0x00 is  off 0xFF is all on
@@ -534,10 +519,6 @@ const  unsigned char CH_Font_Four[]  = {
 	0x00,0x71,0x49,0x49,0x49,0x49,0x49,0x47, // Z
 };
 
-#endif //font Four
-
-
-#ifdef CH1115_Font_Five
 // ASCII font file : "bignum" font 5 16 by 32 , 
 // Define the ASCII table as Data array
 // NUMBERS + ":" ONLY 
@@ -600,9 +581,5 @@ static const uint8_t CH_Font_Five [11][64] =
 	0x0C,0x00,0x00,0x30,0x0F,0xF0,0x0F,0xF0,0x0F,0xF0,0x0F,0xF0,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}
 };  
-  
-
-#endif // Font Five
-
 
 #endif // guard header

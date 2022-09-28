@@ -134,7 +134,6 @@ void ERMCH1115_graphics::fillCircleHelper(int16_t x0, int16_t y0, int16_t r,
 	}
 }
 
-// Bresenham's algorithm - thx wikpedia
 void ERMCH1115_graphics::drawLine(int16_t x0, int16_t y0,
 								int16_t x1, int16_t y1,
 								uint8_t color) {
@@ -188,19 +187,16 @@ void ERMCH1115_graphics::drawRect(int16_t x, int16_t y,
 
 void ERMCH1115_graphics::drawFastVLine(int16_t x, int16_t y,
 								 int16_t h, uint8_t color) {
-	// Update in subclasses if desired!
 	drawLine(x, y, x, y+h-1, color);
 }
 
 void ERMCH1115_graphics::drawFastHLine(int16_t x, int16_t y,
 								 int16_t w, uint8_t color) {
-	// Update in subclasses if desired!
 	drawLine(x, y, x+w-1, y, color);
 }
 
 void ERMCH1115_graphics::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 								uint8_t color) {
-	// Update in subclasses if desired!
 	for (int16_t i=x; i<x+w; i++) {
 		drawFastVLine(i, y, h, color);
 	}
@@ -227,10 +223,8 @@ void ERMCH1115_graphics::drawRoundRect(int16_t x, int16_t y, int16_t w,
 // Fill a rounded rectangle
 void ERMCH1115_graphics::fillRoundRect(int16_t x, int16_t y, int16_t w,
 								 int16_t h, int16_t r, uint8_t color) {
-	// smarter version
 	fillRect(x+r, y, w-2*r, h, color);
 
-	// draw four corners
 	fillCircleHelper(x+w-r-1, y+r, r, 1, h-2*r-1, color);
 	fillCircleHelper(x+r    , y+r, r, 2, h-2*r-1, color);
 }
@@ -310,7 +304,7 @@ void ERMCH1115_graphics::fillTriangle ( int16_t x0, int16_t y0,
 
 
 // Draw a 1-bit color bitmap at the specified x, y position from the
-// provided bitmap buffer (must be PROGMEM memory) using colour as the
+// provided bitmap buffer (using colour as the
 // foreground colour and bg as the background colour.
 // Variable drawBitmapAddr controls data addressing
 // drawBitmapAddr  = true Vertical  data addressing
@@ -389,7 +383,6 @@ if (_FontNumber < CH1115Font_Bignum)
 		
 	}else if (_FontNumber== CH1115Font_Bignum)
 	{
-#ifdef CH1115_Font_Five
 		if (c == '\n') 
 		{
 			cursor_y += _CurrentFontheight;
@@ -417,7 +410,6 @@ if (_FontNumber < CH1115Font_Bignum)
 				cursor_x = 0;
 			}
 		}
-#endif
 	}
 
 	return 1;
@@ -442,21 +434,14 @@ void ERMCH1115_graphics::drawChar(int16_t x, int16_t y, unsigned char c,
 		else 
 		{
 			 switch (_FontNumber) {
-#ifdef CH1115_Font_One
+
 				case CH1115Font_Default : line = CH_Font_One [((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-#endif 
-#ifdef CH1115_Font_Two
-						case CH1115Font_Thick : line = CH_Font_Two[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-#endif
-#ifdef CH1115_Font_Three
-						case CH1115Font_Seven_Seg: line = CH_Font_Three [((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-#endif
-#ifdef CH1115_Font_Four
-						case CH1115Font_Wide : line = CH_Font_Four[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-#endif
-						default: // wrong font number
-								return;
-						break;
+				case CH1115Font_Thick : line = CH_Font_Two[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
+				case CH1115Font_Seven_Seg: line = CH_Font_Three [((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
+				case CH1115Font_Wide : line = CH_Font_Four[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
+				default: // wrong font number
+						return;
+				break;
 				}
 		}
 		for (int8_t j = 0; j<_CurrentFontheight; j++) {
@@ -594,7 +579,6 @@ void ERMCH1115_graphics::setFontNum(OLED_FONT_TYPE_e FontNumber)
 
 void ERMCH1115_graphics::drawCharBigNum(uint8_t x, uint8_t y, uint8_t c, uint8_t color , uint8_t bg) 
 {
-#ifdef CH1115_Font_Five
 		if (_FontNumber != CH1115Font_Bignum)
 		{
 				return;
@@ -621,11 +605,6 @@ void ERMCH1115_graphics::drawCharBigNum(uint8_t x, uint8_t y, uint8_t c, uint8_t
 						}
 				}
 		}
-#else
-// Get rid of unused variables compiler warnings if font not enabled
-	x+=1;
-	x=y +c+color+bg ;
-#endif
 }
 
 // Desc: Writes text string (*ptext) on the TFT 

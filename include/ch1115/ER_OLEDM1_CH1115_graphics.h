@@ -49,7 +49,6 @@ class ERMCH1115_graphics : public Print {
 
 	virtual size_t write(uint8_t);
 
-	// Defined by the subclass:
 	virtual void drawPixel(int16_t x, int16_t y, uint8_t color) = 0;
 
 	virtual void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t color);
