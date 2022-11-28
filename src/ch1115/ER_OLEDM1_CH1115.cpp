@@ -7,7 +7,8 @@
 */
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "../include/ch1115/ER_OLEDM1_CH1115.h"
+#include "../include/ch1115/ER_OLEDM1_CH1115.hpp"
+#include "../include/ch1115/ER_OLEDM1_CH1115_graphics.hpp"
 
 // Class Constructor
 ERMCH1115  :: ERMCH1115(int8_t cd, int8_t rst, int8_t cs, int8_t sclk, int8_t din) :  ERMCH1115_graphics(OLED_WIDTH, OLED_HEIGHT) 
@@ -23,7 +24,10 @@ ERMCH1115  :: ERMCH1115(int8_t cd, int8_t rst, int8_t cs, int8_t sclk, int8_t di
 // Desc: begin Method initialise OLED 
 // Sets pinmodes and SPI setup
 // Param1: OLEDcontrast default = 0x80 , range 0x00 to 0xFE
-void ERMCH1115::OLEDbegin (uint8_t OLEDcontrast, spi_inst_t *spi_type) 
+// Param2: SPi instance spi1 or spi0 
+// Param3: SPI baudrate in Khz , 1000 = 1 Mhz
+// Max SPI speed on the PICO is 62.5Mhz
+void ERMCH1115::OLEDbegin (uint8_t OLEDcontrast, spi_inst_t *spiType, uint32_t spiSpeedKhz) 
 {
 	_OLEDcontrast  = OLEDcontrast ;
 
@@ -38,9 +42,9 @@ void ERMCH1115::OLEDbegin (uint8_t OLEDcontrast, spi_inst_t *spi_type)
 	gpio_set_dir(_OLED_CS, GPIO_OUT);
 	gpio_put(_OLED_CS, true);
 	
-	spi_inst_t *spi = spi_type;
-	// Initialize SPI port at 1 MHz
-	spi_init(spi, 1000 * 1000);
+	spi_inst_t *spi = spiType;
+	// Initialize SPI port 
+	spi_init(spi, spiSpeedKhz * 1000);
 	// Initialize SPI pins
 	gpio_set_function(_OLED_SCLK, GPIO_FUNC_SPI);
 	gpio_set_function(_OLED_DIN, GPIO_FUNC_SPI);
@@ -300,7 +304,7 @@ void ERMCH1115::OLEDFillPage(uint8_t page_num, uint8_t dataPattern,uint8_t mydel
 
 }
 
-//Desc: Draw a bitmap in PROGMEM to the screen
+//Desc: Draw a bitmap to the screen
 //Param1: x offset 0-128
 //Param2: y offset 0-64
 //Param3: width 0-128
@@ -308,8 +312,6 @@ void ERMCH1115::OLEDFillPage(uint8_t page_num, uint8_t dataPattern,uint8_t mydel
 //Param5 the bitmap
 void ERMCH1115::OLEDBitmap(int16_t x, int16_t y, uint8_t w, uint8_t h, const uint8_t* data) 
 {
-
- 
  ERMCH1115_CS_SetLow;
 
   uint8_t tx, ty; 
@@ -332,42 +334,19 @@ void ERMCH1115::OLEDBitmap(int16_t x, int16_t y, uint8_t w, uint8_t h, const uin
 		}
   }
 ERMCH1115_CS_SetHigh;
-
-
 }
-
-
-// Desc init the Multibuffer struct
-// Param 1 Pointer to a struct
-// Param 2 Pointer to buffer array data(arrays decay to  pointers)
-// Param 3. width of buffer
-// Param 4. height of buffer
-// Param 5. x offset of buffer
-// Param 6. y offset of buffer
-
-void ERMCH1115::OLEDinitBufferStruct(CH1115MultiBuffer* mystruct, uint8_t* mybuffer, uint8_t w,  uint8_t h, int16_t  x, int16_t y)
-{
-   mystruct->screenbitmap = mybuffer; // point it to the buffer
-   mystruct->width = w ;
-   mystruct->height = h;
-   mystruct->xoffset = x;
-   mystruct->yoffset = y; 
-}
-
-
 
 //Desc: updates the buffer i.e. writes it to the screen
 void ERMCH1115::OLEDupdate() 
 {
-	OLEDBuffer( this->ActiveBuffer->xoffset, this->ActiveBuffer->yoffset, this->ActiveBuffer->width, this->ActiveBuffer->height, (uint8_t*) this->ActiveBuffer->screenbitmap); 
-	return;
+  uint8_t x = 0; uint8_t y = 0; uint8_t w = this->bufferWidth; uint8_t h = this->bufferHeight;
+  OLEDBuffer( x,  y,  w,  h, (uint8_t*) this->OLEDbuffer);
 }
 
 //Desc: clears the buffer i.e. does NOT write to the screen
 void ERMCH1115::OLEDclearBuffer()
 {
-   memset( this->ActiveBuffer->screenbitmap, 0x00, (this->ActiveBuffer->width * (this->ActiveBuffer->height/ 8))  ); 
-   return;
+	memset( this->OLEDbuffer, 0x00, (this->bufferWidth * (this->bufferHeight /8))  ); 
 }
 
 //Desc: Draw a bitmap to the screen
@@ -379,8 +358,6 @@ void ERMCH1115::OLEDclearBuffer()
 //Note: Called by OLEDupdate
 void ERMCH1115::OLEDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* data) 
 {
-
-
  ERMCH1115_CS_SetLow;
 
   uint8_t tx, ty; 
@@ -403,8 +380,6 @@ void ERMCH1115::OLEDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* 
 		  send_data(data[offset++]);
 	}
   }
-  
-  
 ERMCH1115_CS_SetHigh;
 
 }
@@ -413,21 +388,16 @@ ERMCH1115_CS_SetHigh;
 // Passed x and y co-ords and colour of pixel.
 void ERMCH1115::drawPixel(int16_t x, int16_t y, uint8_t colour) 
 {
-	
-
-  if ((x < 0) || (x >= this->ActiveBuffer->width) || (y < 0) || (y >= this->ActiveBuffer->height)) {
+  if ((x < 0) || (x >= this->bufferWidth) || (y < 0) || (y >= this->bufferHeight)) {
 	return;
   }
-	  uint16_t offset = (this->ActiveBuffer->width * (y/8)) + x; 
+	  uint16_t tc = (bufferWidth * (y /8)) + x; 
 	  switch (colour)
 	  {
-		case FOREGROUND: this->ActiveBuffer->screenbitmap[offset] |= (1 << (y & 7)); break;
-		case BACKGROUND: this->ActiveBuffer->screenbitmap[offset] &= ~(1 << (y & 7)); break;
-		case INVERSE: this->ActiveBuffer->screenbitmap[offset] ^= (1 << (y & 7)); break;
+		case FOREGROUND:  this->OLEDbuffer[tc] |= (1 << (y & 7)); break;
+		case BACKGROUND:  this->OLEDbuffer[tc] &= ~(1 << (y & 7)); break;
+		case INVERSE: this->OLEDbuffer[tc] ^= (1 << (y & 7)); break;
 	  }
-	return;
-
-	
 
 }
 

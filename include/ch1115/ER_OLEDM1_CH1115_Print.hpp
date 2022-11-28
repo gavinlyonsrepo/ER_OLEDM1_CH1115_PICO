@@ -14,7 +14,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// This is a port of the arduino core file Print.h. see above notice . glyons 25-09-2022
+// This is a port of the arduino core file Print.h. glyons 25-09-2022
  
 #ifndef Print_h
 #define Print_h

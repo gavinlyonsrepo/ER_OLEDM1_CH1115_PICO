@@ -8,7 +8,7 @@
 // === Libraries ===
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
-#include "ch1115/ER_OLEDM1_CH1115.h"
+#include "ch1115/ER_OLEDM1_CH1115.hpp"
 
 // === Defines ===
 #define OLEDcontrast 0x80 //Contrast 00 to FF , 0x80 is default. user adjust
@@ -28,20 +28,19 @@ ERMCH1115  myOLED(dc_pin, res_pin, cs_pin, sck_pin, mosi_pin);
 int main() {
 
   busy_wait_ms(50);
+  
   // Screen Setup :
-  myOLED.OLEDbegin(OLEDcontrast); // initialize the OLED
+  // initialize the OLED , contrast , Spi interface , spi Baud rate in Khz
+  myOLED.OLEDbegin(OLEDcontrast, spi0, 8000); 
   myOLED.setTextColor(FOREGROUND);
-  myOLED.setFontNum(CH1115Font_Default);
+  myOLED.setFontNum(OLEDFontType_Default);
   myOLED.OLEDFillScreen(0x00, 0);
     
   // Buffer setup  
   // Define a buffer to cover whole screen
-  uint8_t  screenBuffer[MYOLEDWIDTH  * (MYOLEDHEIGHT / 8)]; // 1024 bytes = 128 * 64/8
-  CH1115MultiBuffer myStruct;   // Declare a multibuffer struct 
-  // Intialise that struct with buffer details (&struct,  buffer, w, h, x-offset,y-offset)
-  myOLED.OLEDinitBufferStruct(&myStruct, screenBuffer, MYOLEDWIDTH, MYOLEDHEIGHT, 0, 0);
-  myOLED.ActiveBuffer = &myStruct;  // Assign struct to be the active buffer pointer
-  myOLED.OLEDclearBuffer();   // Clear active buffer
+  uint8_t screenBuffer[MYOLEDWIDTH  * (MYOLEDHEIGHT / 8)]; // 1024 bytes = 128 * 64/8
+  myOLED.OLEDbuffer = (uint8_t*) &screenBuffer;  // Assign the pointer to the buffer
+  myOLED.OLEDclearBuffer();   // Clear  buffer
   
   while (1)
   {

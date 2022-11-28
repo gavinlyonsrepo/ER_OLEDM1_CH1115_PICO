@@ -11,7 +11,7 @@
 
 // ** INCLUDES **
 
-#include "ch1115/ER_OLEDM1_CH1115_graphics.h"
+#include "ch1115/ER_OLEDM1_CH1115_graphics.hpp"
 #include "hardware/spi.h"
 
 // ** DEFINES **
@@ -100,15 +100,6 @@ const uint8_t OLED_WIDTH = 128;
 const uint8_t OLED_HEIGHT = 64;
 const uint8_t OLED_PAGE_NUM = (OLED_HEIGHT/8);
 
-struct CH1115MultiBuffer
-{
-  uint8_t* screenbitmap; // pointer to buffer
-  uint8_t width=OLED_WIDTH;  // bitmap x size
-  uint8_t height=OLED_HEIGHT ; // bitmap y size
-  int16_t xoffset = 0; // x offset
-  int16_t yoffset = 0; // y offset
-};
-
 // ** CLASS SECTION **
 class ERMCH1115 : public ERMCH1115_graphics  {
 
@@ -117,15 +108,12 @@ class ERMCH1115 : public ERMCH1115_graphics  {
 	ERMCH1115(int8_t cd, int8_t rst, int8_t cs, int8_t sclk, int8_t din);
 	~ERMCH1115(){};
 
-   CH1115MultiBuffer* ActiveBuffer;
-   void OLEDinitBufferStruct(CH1115MultiBuffer *p, uint8_t* mybuffer, uint8_t w,  uint8_t h, int16_t  x, int16_t y); 
-
 	virtual void drawPixel(int16_t x, int16_t y, uint8_t colour) override;
 	void OLEDupdate(void);
 	void OLEDclearBuffer(void);
 	void OLEDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* data);
 	
-	void OLEDbegin(uint8_t OLEDcontrast = ERMCH115_CONTRAST_DATA_DEFAULT, spi_inst_t *spi = spi0);
+	void OLEDbegin(uint8_t OLEDcontrast = ERMCH115_CONTRAST_DATA_DEFAULT, spi_inst_t *spi = spi0, uint32_t spiBaudRate = 8000);
 	void OLEDinit(void);
 	void OLEDReset(void);
 	
@@ -142,6 +130,10 @@ class ERMCH1115 : public ERMCH1115_graphics  {
 	void OLEDfadeEffect(uint8_t bits = ERMCCH1115_BREATHEFFECT_DATA);
 	bool OLEDIssleeping(void);
 	void OLEDPowerDown(void);
+
+	uint8_t* OLEDbuffer = nullptr;
+	uint8_t bufferWidth = OLED_WIDTH;
+	uint8_t bufferHeight = OLED_HEIGHT;
 	
   private:
 

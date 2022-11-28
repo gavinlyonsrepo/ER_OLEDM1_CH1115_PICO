@@ -14,7 +14,10 @@ pico_sdk_init()
 
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME} 
-  src/main.cpp
+  examples/ER_OLEDM1_CH1115_HELLO/main.cpp
+  #examples/ER_OLEDM1_CH1115_MISC/main.cpp
+  #examples/ER_OLEDM1_CH1115_BITMAP/main.cpp
+ 
 )
 
 # Create map/bin/hex/uf2 files
@@ -26,6 +29,7 @@ target_sources(pico_ch1115 INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/src/ch1115/ER_OLEDM1_CH1115.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/ch1115/ER_OLEDM1_CH1115_graphics.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/ch1115/ER_OLEDM1_CH1115_Print.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/ch1115/ER_OLEDM1_CH1115_font.cpp
 )
 
 target_include_directories(pico_ch1115 INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)

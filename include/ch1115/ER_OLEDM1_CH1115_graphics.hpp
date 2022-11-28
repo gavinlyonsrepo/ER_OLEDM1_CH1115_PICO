@@ -1,8 +1,7 @@
 /*
 * Project Name: ER_OLEDM1_CH1115
 * File: ER_OLEDM1_CH1115_graphics.h
-* Description: ER_OLEDM1 OLED driven by CH1115controller header file for the custom graphics functions based on Adafruit graphics library
-* Author: Gavin Lyons.
+* Description: ER_OLEDM1 OLED driven by CH1115controller header file for the  graphics functions
 * URL: https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115_PICO
 */
 
@@ -10,36 +9,45 @@
 #define _ER_OLEDM1_CH1115_GRAPHICS_H
 
 #include <cmath> // for abs function 
-#include "../include/ch1115/ER_OLEDM1_CH1115_Print.h"
-
+#include "ch1115/ER_OLEDM1_CH1115_Print.hpp"
 
 #define swap(a, b) { int16_t t = a; a = b; b = t; }
 
 typedef enum 
 {
-    CH1115Font_Default = 1,
-    CH1115Font_Thick = 2,
-    CH1115Font_Seven_Seg = 3,
-    CH1115Font_Wide = 4,
-    CH1115Font_Bignum = 5,
-}OLED_FONT_TYPE_e;
+    OLEDFontType_Default = 1,
+    OLEDFontType_Thick = 2, // NO LOWERCASE
+    OLEDFontType_SevenSeg = 3,
+    OLEDFontType_Wide = 4, // NO LOWERCASE
+    OLEDFontType_Tiny = 5,
+    OLEDFontType_Homespun = 6,
+    OLEDFontType_Bignum = 7, // NUMBERS + : . ,one size
+    OLEDFontType_Mednum = 8   // NUMBERS + : . ,one size
+}OLEDFontType_e;
 
 typedef enum 
 {
-	FONT_W_5 = 5, FONT_W_7 = 7, FONT_W_4 = 4, FONT_W_8 = 8,FONT_W_16= 16
-}OLED_Font_width_e; // width of the font in bytes cols.
+	OLEDFontWidth_3 = 3,
+	OLEDFontWidth_5 = 5, 
+	OLEDFontWidth_7 = 7, 
+	OLEDFontWidth_4 = 4, 
+	OLEDFontWidth_8 = 8,
+	OLEDFontWidth_16 = 16
+}OLEDFontWidth_e; // width of the font in bytes cols.
 
 typedef enum 
 {
-	FONT_O_EXTEND = 0x00, //   extends ASCII
-	FONT_O_SP = 0x20,  // Starts at Space
-	FONT_O_NUM = 0x30,  // Starts at number '0'
-}OLED_Font_offset_e; // font offset in the ASCII table
+	OLEDFontOffset_Extend = 0x00, //   extends ASCII
+	OLEDFontOffset_Space = 0x20,  // Starts at Space
+	OLEDFontOffset_Number = 0x30,  // Starts at number '0'
+}OLEDFontOffset_e; // font offset in the ASCII table
 
 typedef enum 
 {
-	FONT_H_8 = 8, FONT_H_16 = 16, FONT_H_32 = 32
-}OLED_Font_height_e; // width of the font in bits
+	OLEDFontHeight_8 = 8, 
+	OLEDFontHeight_16 = 16, 
+	OLEDFontHeight_32 = 32
+}OLEDFontHeight_e; // height of the font in bits
 
 class ERMCH1115_graphics : public Print {
 
@@ -47,16 +55,16 @@ class ERMCH1115_graphics : public Print {
 
 	ERMCH1115_graphics(int16_t w, int16_t h); // Constructor
 
-	virtual size_t write(uint8_t);
+	size_t write(uint8_t);
 
-	virtual void drawPixel(int16_t x, int16_t y, uint8_t color) = 0;
+	virtual void drawPixel(int16_t x, int16_t y, uint8_t color)  = 0;
 
-	virtual void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t color);
-	virtual void drawFastVLine(int16_t x, int16_t y, int16_t h, uint8_t color);
-	virtual void drawFastHLine(int16_t x, int16_t y, int16_t w, uint8_t color);
-	virtual void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t color);
-	virtual void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t color);
-	virtual void fillScreen(uint8_t color);
+	void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t color);
+	void drawFastVLine(int16_t x, int16_t y, int16_t h, uint8_t color);
+	void drawFastHLine(int16_t x, int16_t y, int16_t w, uint8_t color);
+	void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t color);
+	void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t color);
+	void fillScreen(uint8_t color);
 
 	void drawCircle(int16_t x0, int16_t y0, int16_t r, uint8_t color);
 	void drawCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername,
@@ -87,11 +95,10 @@ class ERMCH1115_graphics : public Print {
 
 	int16_t height(void) const;
 	int16_t width(void) const;
-	OLED_FONT_TYPE_e FontNum;
 	
-	void setFontNum(OLED_FONT_TYPE_e FontNumber);
-	void drawCharBigNum(uint8_t x, uint8_t y, uint8_t c, uint8_t color , uint8_t bg);
-	void drawTextBigNum(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg);
+	void setFontNum(OLEDFontType_e FontNumber);
+	void drawCharNumFont(uint8_t x, uint8_t y, uint8_t c, uint8_t color , uint8_t bg);
+	void drawTextNumFont(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg);
 	
  protected:
 	const int16_t WIDTH;
@@ -109,10 +116,10 @@ class ERMCH1115_graphics : public Print {
 	bool wrap; // If set, 'wrap' text at right edge of display
 	bool drawBitmapAddr; // True = vertical , false = horizontal
 	
-	uint8_t _FontNumber = CH1115Font_Default;;
-	uint8_t _CurrentFontWidth = FONT_W_5;
-	uint8_t _CurrentFontoffset = FONT_O_EXTEND ;
-	uint8_t _CurrentFontheight = FONT_H_8;
+	uint8_t _FontNumber = OLEDFontType_Default;
+	uint8_t _CurrentFontWidth = OLEDFontWidth_5;
+	uint8_t _CurrentFontoffset = OLEDFontOffset_Extend ;
+	uint8_t _CurrentFontheight = OLEDFontHeight_8;
 };
 
 #endif 
