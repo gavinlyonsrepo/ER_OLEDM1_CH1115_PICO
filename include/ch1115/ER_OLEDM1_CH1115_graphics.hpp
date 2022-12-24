@@ -99,6 +99,7 @@ class ERMCH1115_graphics : public Print {
 	void setFontNum(OLEDFontType_e FontNumber);
 	void drawCharNumFont(uint8_t x, uint8_t y, uint8_t c, uint8_t color , uint8_t bg);
 	void drawTextNumFont(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg);
+	void drawText(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg, uint8_t size);
 	
  protected:
 	const int16_t WIDTH;

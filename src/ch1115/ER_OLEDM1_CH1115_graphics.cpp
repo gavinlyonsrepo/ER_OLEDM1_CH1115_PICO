@@ -653,6 +653,30 @@ void ERMCH1115_graphics::drawTextNumFont(uint8_t x, uint8_t y, char *pText, uint
 		}
 }
 
+// Desc: Writes text string (*ptext) on the OLED
+// Param 1 , 2 : coordinates (x, y).
+// Param 3: pointer to string 
+// Param 4: color 
+// Param 5: background color
+// Notes for font 1- 6 only
+void ERMCH1115_graphics::drawText(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg, uint8_t size) {
+	if (_FontNumber >= OLEDFontType_Bignum){return;}
+	uint8_t cursor_x, cursor_y;
+	cursor_x = x, cursor_y = y;
+	while (*pText != '\0') 
+	{
+		if (wrap && ((cursor_x + size * _CurrentFontWidth) > _width)) 
+		{
+			cursor_x = 0;
+			cursor_y = cursor_y + size * 7 + 3;
+			if (cursor_y > _height) cursor_y = _height;
+		}
+		drawChar(cursor_x, cursor_y, *pText, color, bg, size);
+		cursor_x = cursor_x + size * (_CurrentFontWidth + 1);
+		if (cursor_x > _width) cursor_x = _width;
+		pText++;
+	}
+}
 
 void ERMCH1115_graphics::drawPixel(int16_t x, int16_t y, uint8_t color)
 {

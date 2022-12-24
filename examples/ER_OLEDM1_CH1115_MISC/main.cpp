@@ -11,7 +11,7 @@
 /*
   Test list:
   Text tests.  1-6
-  Font test.   7-14
+  Font tests.   7-14
   Graphic test. 15
   Misc functions test. 16A-F
   FPs Test. 17 
@@ -20,6 +20,7 @@
   Test 2 font size 2 integer
   Test 3 font size 1 string inverted
   Test 4 draw a single character font size 4
+  Test 4b drawtext method test
   Test 5 print ASCII  font 0-127
   Test 6 print ASCII font 128-255, if #define UC_FONT_MOD_TWO comment in will not work
   Test 7 "thick" font 2 (NO LOWERCASE)
@@ -137,6 +138,15 @@ void DisplayText()
   myOLED.drawChar(95, 15 , 'H', FOREGROUND, BACKGROUND, 6);
 
   myOLED.OLEDupdate();  // Write to the buffer
+  busy_wait_ms(DisplayDelay1);
+  myOLED.OLEDclearBuffer();
+
+  // Test 4b 
+  char myString1[9] = {'1', '2', ':', '1', '3', ':', '2', '9'};
+  myOLED.drawText(0,0, myString1, FOREGROUND, BACKGROUND,1);
+  myOLED.drawText(0,32, myString1, FOREGROUND, BACKGROUND,2);
+  
+  myOLED.OLEDupdate();  
   busy_wait_ms(DisplayDelay1);
   myOLED.OLEDclearBuffer();
 
@@ -487,12 +497,12 @@ void DisplayMiscTests()
 void DisplayFPS(){
 
 // Values to count frame rate per second
-	long previousMillis  = 0;
-	long lastFramerate = 0;
-	long currentFramerate = 0;
-	uint16_t count  = 0;
-	uint16_t seconds  = 0;
-	uint16_t fps = 0;
+  long previousMillis  = 0;
+  long lastFramerate = 0;
+  long currentFramerate = 0;
+  uint16_t count  = 0;
+  uint16_t seconds  = 0;
+  uint16_t fps = 0;
   bool colour = 1;
 
   while(1)
