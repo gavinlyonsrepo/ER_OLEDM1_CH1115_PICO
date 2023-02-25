@@ -148,7 +148,7 @@ class ERMCH1115 : public ERMCH1115_graphics  {
 	
 	bool _sleep = true; // False awake/ON , true sleep/OFF
 	uint8_t _OLEDcontrast; // Contrast default 0x80 datasheet 00-FF
-	spi_inst_t *spi = spi0;
+	spi_inst_t *spiInterface;
 }; // end of class
 
 #endif // end of guard header

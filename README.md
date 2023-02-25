@@ -38,8 +38,8 @@ Output
 Output Screenshots, From left to right, top to bottom.
 
 1. Full screen bitmap displayed 
-2. Multi buffer mode screen divided into two horizontal buffers
-3. Multi buffer mode screen divided into vertical buffers, clock demo.
+2. FPS test
+3. clock demo.
 4. Different size and type of fonts 
 5. Available ASCII font printed out 0-127
 6. Extended ASCII font printed out 128-255  
@@ -74,12 +74,8 @@ Software
 
 *SPI*
 
-Hardware SPI. The hardware SPI speed is set at 1MHz you can increase this if necessary by changing OLEDbegin function.
-Sp10 is used in exmaple files but can be changed by passing a different SPI channel. 
-
-*buffers*
-
-The screen can be divided into different sections with a shared buffer or the entire screen can be allocated to the a single buffer see  example files for details.
+Hardware SPI. The hardware SPI speed is set at 8MHz you can increase this if necessary by changing OLEDbegin method arguments.
+Spi0 is used in example files but can be changed by passing a different SPI channel. 
 
 *fonts*
 

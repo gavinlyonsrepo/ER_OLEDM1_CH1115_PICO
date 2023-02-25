@@ -42,15 +42,15 @@ void ERMCH1115::OLEDbegin (uint8_t OLEDcontrast, spi_inst_t *spiType, uint32_t s
 	gpio_set_dir(_OLED_CS, GPIO_OUT);
 	gpio_put(_OLED_CS, true);
 	
-	spi_inst_t *spi = spiType;
+	spiInterface = spiType;
 	// Initialize SPI port 
-	spi_init(spi, spiSpeedKhz * 1000);
+	spi_init(spiInterface, spiSpeedKhz * 1000);
 	// Initialize SPI pins
 	gpio_set_function(_OLED_SCLK, GPIO_FUNC_SPI);
 	gpio_set_function(_OLED_DIN, GPIO_FUNC_SPI);
 
     // Set SPI format
-    spi_set_format( spi,   // SPI instance
+    spi_set_format( spiInterface,   // SPI instance
                     8,      // Number of bits per transfer
                     SPI_CPOL_0,      // Polarity (CPOL)
                     SPI_CPHA_0,      // Phase (CPHA)
@@ -129,7 +129,7 @@ void ERMCH1115::send_command (uint8_t command,uint8_t value)
 // Param1: Data byte
 void ERMCH1115::send_data(uint8_t data)
 {
-	spi_write_blocking(spi, &data, 1);
+	spi_write_blocking(spiInterface, &data, 1);
 
 }
 
