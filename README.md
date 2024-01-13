@@ -1,17 +1,24 @@
 [![Website](https://img.shields.io/badge/Website-Link-blue.svg)](https://gavinlyonsrepo.github.io/)  [![Rss](https://img.shields.io/badge/Subscribe-RSS-yellow.svg)](https://gavinlyonsrepo.github.io//feed.xml)  [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/paypalme/whitelight976)
 
-![ OLED ](https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115/blob/main/extras/image/oled.jpg)
+# ER_OLEDM1_CH1115_PICO
 
-Table of contents
----------------------------
+![ OLED](https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115/blob/main/extras/image/oled.jpg)
+
+## Table of contents
+
 
   * [Overview](#overview)
   * [Output](#output)
   * [Hardware](#hardware)
   * [Software](#software)
+	* [API Documentation](#api-Documentation)
+	* [SPI](#spi)
+	* [Fonts](#fonts)
+	* [Bitmaps](#bitmaps)
+  * [File system](#file-system)
   
-Overview
---------------------
+## Overview
+
 * Name : ER_OLEDM1_CH1115_PICO
 * Title : Library to support the ER-OLEDM1.09-1 128X64 OLED Display Module driven by the CH1115 controller 
 
@@ -19,39 +26,27 @@ Overview
 
 1. Raspberry pi PICO RP2040 library.      
 2. Invert colour, vertical rotate, sleep, fade effect, horizontal scroll and contrast control  functions supported.
-3. 8 ASCII fonts included.
+3. 10 ASCII fonts included.
 4. Graphics support included.
 5. Buffer Mode
 6. Bitmaps supported.
 7. Hardware SPI.
+8. Polymorphic print class included to print many data types.
 
 * Author: Gavin Lyons
 * Developed on
 	1. Raspberry pi PICO RP2040
 	2. SDK C++ compiler G++ for arm-none-eabi
 	3. CMAKE , VScode
-* Ported from  [arduino library](https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115)
+* Ported from  my [arduino library](https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115)
 
-Output
------------------------------
+## Output
 
-Output Screenshots, From left to right, top to bottom.
+Output Screenshots.
 
-1. Full screen bitmap displayed 
-2. FPS test
-3. clock demo.
-4. Different size and type of fonts 
-5. Available ASCII font printed out 0-127
-6. Extended ASCII font printed out 128-255  
-7. Fonts 1-4 
-8. Font 7
+![ p ](https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115_PICO/blob/main/extra/image/all.jpg)
 
-![ output ](https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115/blob/main/extras/image/output.jpg)
-![ output ](https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115_RPI/blob/main/extras/image/fontpic.jpg)
-
-
-Hardware
-----------------------------
+## Hardware
 
 CH1115 is a single-chip CMOS OLED driver with controller for organic light emitting diode dot-matrix graphic display system. CH1115 consists of 128 segments, 64 commons that can support a maximum display resolution of 128 X 64. It is designed for Common Cathode type OLED panel. ER-OLEDM1.09-1W-SPI is a White 1.09" OLED Display Panel with Breakout Board. This module is a combination of the two.(controller and OLED)
 
@@ -69,63 +64,95 @@ This wiring Diagram from the manufacturer datasheet showing hardware setup conne
 
 ![ wiring ](https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115/blob/main/extras/image/wiring.jpg)
 
-Software
--------------------------
+## Software
 
-*SPI*
+
+### API Documentation
+
+The Software is commented mostly for "doxygen" and if users uses "doxygen" software
+an API document  can be generated. A Doxyfile is in "doc" sub folder in repository.
+
+### SPI
 
 Hardware SPI. The hardware SPI speed is set at 8MHz you can increase this if necessary by changing OLEDbegin method arguments.
 Spi0 is used in example files but can be changed by passing a different SPI channel. 
 
-*fonts*
+### Fonts
 
-There are Eight fonts.
-A print class is available to print out most passed data types.
-The fonts 1-6 are a byte high(at text size 1) scale-able fonts, columns of padding added by SW.
-Font 7&8 are special numerical large fonts and cannot be scaled(just one size).  
-Font 7&8 will print just numbers + semi-colons ,  if you print a float using print command
-it will place a space and use a circle for a decimal point.
+There are 10 fonts packaged with library. Fonts can be easily added or removed by user.
+All the Font data is in file SSD1306_OLED_font.cpp and SSD1306_OLED_font.hpp
 
 Font data table: 
 
-| Font num | Font enum name | Font size xbyy |  ASCII range | Size in bytes |
+| num | Font pointer name | character size XxY |  ASCII range | Size in bytes |
 | ------ | ------ | ------ | ------ |  ------ | 
-| 1 | OLEDFontType_Default | 5x8 | ASCII 0 - 0xFF, Full Extended  | 1275 |
-| 2 | OLEDFontType_Thick   | 7x8 |  ASCII  0x20 - 0x5A, no lowercase letters | 406 | 
-| 3 | OLEDFontType_SevenSeg  | 4x8 | ASCII  0x20 - 0x7A | 360 |
-| 4 | OLEDFontType_Wide | 8x8 |  ASCII 0x20 - 0x5A, no lowercase letters| 464 |
-| 5 | OLEDFontType_Tiny | 3x8 | ASCII  0x20 - 0x7E | 285 |
-| 6 | OLEDFontType_Homespun  | 7x8 | ASCII  0x20 - 0x7E |  658 |
-| 7 | OLEDFontType_Bignum | 16x32 | ASCII 0x30-0x3A ,Numbers + : . only | 704 |
-| 8 | OLEDFontType_Mednum | 16x16 | ASCII 0x30-0x3A , Numbers + : . only | 352 |
+| 1 | pFontDefault | 6x8 |  0 - 0xFE, Full Extended  | 1534 |
+| 2 | pFontWide | 9x8 | 0x20 - 0x5A, NO lowercase letters | 535 |
+| 3 | pFontPico | 4x6 | 0x20 - 0x7E  | 289 | 
+| 4 | pFontSinclairS  | 8x8 | 0x20 - 0x7E | 764 |
+| 5 | pFontMega | 16x16 | 0x20 - 0x7E | 3044 |
+| 6 | pFontArialBold  | 16x16 | 0x20 - 0x7E |  3044 |
+| 7 | pFontHallfetica | 16x16 | 0x20 - 0x7E | 3044 |
+| 8 | pFontArialRound| 16x24 | 0x20 - 0x7E | 4564 |
+| 9 | pFontGroTesk | 16x32 | 0x20 - 0x7A |  5828 |
+| 10 | pFontSixteenSeg | 32x48 | 0x2D-0x3A , 0-10  :  .  / - only | 2692 |
 
-*font mods*
+Font size in bytes = ((X * (Y/8)) * numberOfCharacters) + (4*ControlByte)
 
-The default ASCII font (font 1) is an extended font, 0-255 characters.
-If you do not need characters 127-255 and wish to save memory space:
-In library header file ER_OLEDM1_CH1115_font.h in the USER FONT OPTION TWO section
-Simply comment this define out. 
+| Font class Function | Notes |
+| ------ | ------ | 
+| writeChar| draws single character |
+| writeCharString | draws character array |
+| print | Polymorphic print class which will print out many data types |
 
-1. UC_FONT_MOD_TWO (save 640 bytes) extended ASCII 127-255
+These methods return an error code in event of an error such as, ASCII character outside chosen fonts range, character out of screen bounds and invalid character array pointer object.
 
-You can also remove the first 30 characters of default font if not needed but user will need to change  offset in setFontNum function. This will save a further 150 bytes.
+**Remove a font**
 
-*bitmaps*
+To remove an unwanted font from project simply comment out or delete.
 
-There is a few different ways of displaying bitmaps, 
+1. The Font data in SSD1306_OLED_font.cpp file
+2. The pointer to font at bottom of SSD1306_OLED_font.cpp file
+3. The associated extern pointer declaration in the SSD1306_OLED_font.hpp file
 
-| Num | Method | Buffer mode |   Data addressing | Note |
-| ------ | ------ | ------ | ------ |  ------ |  
-| 1 | OLEDBitmap() | None  | Vertical |  Writes directly to screen , no buffer used. | 
-| 2 | OLEDBuffer() | On |  Vertical  |  Mostly for internal use , fill buffer with bitmap | 
-| 3 | drawBitmap() | On | Vertical | default,  setDrawBitmapAddr(true) | 
-| 4 | drawBitmap() | On |  Horizontal | setDrawBitmapAddr(false) |
+**Adding a new font**
 
-See the bitmap example file for more details on each method. Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) 
+1. Add the Font data in SSD1306_OLED_font.cpp file
+2. Add a pointer to font at bottom of SSD1306_OLED_font.cpp file
+3. Add an associated extern pointer declaration in the SSD1306_OLED_font.hpp file
 
-*User adjustments*
+The new ASCII font must have following font structure.
+First 4 bytes are control bytes followed by vertically addressed font data.
 
-When the user calls OLEDbegin() to start OLED they can specify a contrast setting from 0x00 to 0xFF. Datasheet says 0x80 is default. User can also change contrast on the fly.
+```
+// An 4 by 8 character size font starting at 
+// ASCII offset 0x30 in ASCII table with 0x02 characters in font. 
+// 0 and 1 
+static const uint8_t FontBinaryExample[] =
+{
+0x04, 0x08, 0x30, 0x02,   // x-size, y-size, offset, total characters
+(data),(data),(data),(data) // font data '0'
+(data),(data),(data),(data) // font data '1'
+}
+```
+
+Some of the fonts packaged with library came from [URL](http://rinkydinkelectronics.com/).
+If user has picture of a font like so.
+
+![ font ](https://github.com/gavinlyonsrepo/SSD1306_OLED_PICO/blob/main/extra/image/hallfetica_normal.png)
+
+There is a monochrome font maker there at [URL](http://rinkydinkelectronics.com/t_make_font_file_mono.php)
+
+### Bitmaps
+
+OLEDBitmap function will return an error if : The Bitmap is completely off screen , Invalid Bitmap pointer object, bitmap bigger than screen , bitmap bigger/smaller than provided width and height calculation ( This helps prevents buffer overflow). A horizontal addressed Bitmap's width MUST be divisible by 8. eg, for a bitmap with width=88 and height=48. Bitmap excepted size = (88/8) * 48 = 528 bytes.
+
+Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) 
+See example file "_BITMAP" for more details.
+
+### User adjustments
+
+When the user calls OLEDinit() to start OLED they can specify a contrast setting from 0x00 to 0xFF. Datasheet says 0x80 is default. User can also change contrast on the fly.
 Screen can be disabled to enter a sleep type mode where OLED draws 500uA.
 Screen pixel colour can be inverted and also screen can be vertically rotated. 
 
@@ -135,8 +162,7 @@ default is 0x81.
 There is a  Horizontal scroll effect. Whose parameters: Time-interval , direction , mode,
 can be adjusted by passing data to function see "OLEDscrollSetup" function header in .cpp and datasheet for details. defaults are : 6 frames , right , continuous mode.
 
-Files
--------------------
+## Files system
 
 X = ER_OLEDM1_CH1115 in tables below
 
@@ -159,5 +185,6 @@ The default is the Hello world one.
 | Examples files main.cpp  | Description |
 | ------ | ------ | 
 | X_HELLO | Hello world , Basic usage | 
-| X_MISC | Fonts + graphics + FPS test & misc functions, rotate , scroll,  etc | 
+| X_FPS_FUNCTIONS | FPS test & misc functions, rotate , scroll,  etc | 
+| X_TEXT_GRAPHICS  | Fonts + graphics  |
 | X_BITMAP | Shows use of bitmaps methods  | 

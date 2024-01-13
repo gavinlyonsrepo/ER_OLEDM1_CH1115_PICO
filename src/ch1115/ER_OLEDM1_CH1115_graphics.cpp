@@ -1,45 +1,104 @@
-
-/*
-* Project Name: ER_OLEDM1_CH1115
-* File:ER_OLEDM1_CH1115_graphics.cpp
-* Description: ER_OLEDM1 OLED driven by CH1115 controller header file for graphics functions.
-* URL: https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115_PICO
+/*!
+	@file ER_OLEDM1_CH1115_graphics.cpp
+	@brief ER_OLEDM1 OLED driven by CH1115 controller source file
+		for the graphics  based functions. Project Name: ER_OLEDM1_CH1115_PICO
+	@author  Gavin Lyons
 */
 
 #include "../include/ch1115/ER_OLEDM1_CH1115_graphics.hpp"
-#include "../include/ch1115/ER_OLEDM1_CH1115_font.hpp"
 #include "../include/ch1115/ER_OLEDM1_CH1115.hpp"
 
-ERMCH1115_graphics::ERMCH1115_graphics(int16_t w, int16_t h):
-	WIDTH(w), HEIGHT(h)
+// === Font class implementation ===
+
+/*!
+	@brief init the OLED  font class object constructor
+ */
+ERMCH1115_OLEDFonts::ERMCH1115_OLEDFonts(){};
+
+/*!
+	@brief ERMCH1115_SetFont
+	@param  SelectedFontName Select this font, pass the font pointer name
+	@return	Will return
+		-# 0. Success
+		-# 2. Not a valid pointer object.
+ */
+uint8_t ERMCH1115_OLEDFonts::setFont(const uint8_t *SelectedFontName)
 {
-	_width    = WIDTH;
-	_height   = HEIGHT;
-	rotation  = 0;
-	cursor_y  = cursor_x    = 0;
-	textsize  = 1;
-	textcolor = 0x00;
-	textbgcolor = 0xFF;
-	wrap      = true;
-	drawBitmapAddr=true;
+	if (SelectedFontName == nullptr)
+	{
+		printf("ERMCH1115_OLEDFonts::setFont ERROR 2: Invalid pointer object\r\n");
+		return 2;
+	}
+	_FontSelect = SelectedFontName;
+	_Font_X_Size = *(SelectedFontName + 0);
+	_Font_Y_Size = *(SelectedFontName + 1);
+	_FontOffset = *(SelectedFontName + 2);
+	_FontNumChars = *(SelectedFontName + 3);
+	_FontInverted = false;
+	return 0;
 }
 
-// Draw a circle outline
+/*!
+	@brief setInvertFont
+	@param invertStatus set the invert status flag of font ,false = off.
+*/
+void ERMCH1115_OLEDFonts::setInvertFont(bool invertStatus)
+{
+	_FontInverted = invertStatus;
+}
+
+/*!
+	@brief getInvertFont
+	@return invert status flag of font ,false = off.
+*/
+bool ERMCH1115_OLEDFonts::getInvertFont()
+{
+	return _FontInverted;
+}
+
+// === Graphics class implementation ===
+
+/*!
+	@brief init the OLED Graphics class object
+	@param w width defined  in sub-class
+	@param h height defined in sub-class
+ */
+ERMCH1115_graphics::ERMCH1115_graphics(int16_t w, int16_t h) : WIDTH(w), HEIGHT(h)
+{
+	_width = WIDTH;
+	_height = HEIGHT;
+	_rotation = 0;
+	_cursor_y = 0;
+	_cursor_x = 0;
+	_textwrap = true;
+	_drawBitmapAddr = true;
+}
+
+/*!
+	@brief draws a circle where (x0,y0) are center coordinates an r is circle radius.
+	@param x0 circle center x position
+	@param y0 circle center y position
+	@param r radius of circle
+	@param color The color of the circle
+*/
 void ERMCH1115_graphics::drawCircle(int16_t x0, int16_t y0, int16_t r,
-	uint8_t color) {
+									uint8_t color)
+{
 	int16_t f = 1 - r;
 	int16_t ddF_x = 1;
 	int16_t ddF_y = -2 * r;
 	int16_t x = 0;
 	int16_t y = r;
 
-	drawPixel(x0  , y0+r, color);
-	drawPixel(x0  , y0-r, color);
-	drawPixel(x0+r, y0  , color);
-	drawPixel(x0-r, y0  , color);
+	drawPixel(x0, y0 + r, color);
+	drawPixel(x0, y0 - r, color);
+	drawPixel(x0 + r, y0, color);
+	drawPixel(x0 - r, y0, color);
 
-	while (x<y) {
-		if (f >= 0) {
+	while (x < y)
+	{
+		if (f >= 0)
+		{
 			y--;
 			ddF_y += 2;
 			f += ddF_y;
@@ -47,7 +106,7 @@ void ERMCH1115_graphics::drawCircle(int16_t x0, int16_t y0, int16_t r,
 		x++;
 		ddF_x += 2;
 		f += ddF_x;
-	
+
 		drawPixel(x0 + x, y0 + y, color);
 		drawPixel(x0 - x, y0 + y, color);
 		drawPixel(x0 + x, y0 - y, color);
@@ -59,91 +118,127 @@ void ERMCH1115_graphics::drawCircle(int16_t x0, int16_t y0, int16_t r,
 	}
 }
 
-void ERMCH1115_graphics::drawCircleHelper( int16_t x0, int16_t y0,
-							 int16_t r, uint8_t cornername, uint8_t color) {
-	int16_t f     = 1 - r;
+/*!
+	@brief Used internally by drawRoundRect
+*/
+void ERMCH1115_graphics::drawCircleHelper(int16_t x0, int16_t y0,
+										  int16_t r, uint8_t cornername, uint8_t color)
+{
+	int16_t f = 1 - r;
 	int16_t ddF_x = 1;
 	int16_t ddF_y = -2 * r;
-	int16_t x     = 0;
-	int16_t y     = r;
+	int16_t x = 0;
+	int16_t y = r;
 
-	while (x<y) {
-		if (f >= 0) {
+	while (x < y)
+	{
+		if (f >= 0)
+		{
 			y--;
 			ddF_y += 2;
-			f     += ddF_y;
+			f += ddF_y;
 		}
 		x++;
 		ddF_x += 2;
-		f     += ddF_x;
-		if (cornername & 0x4) {
+		f += ddF_x;
+		if (cornername & 0x4)
+		{
 			drawPixel(x0 + x, y0 + y, color);
 			drawPixel(x0 + y, y0 + x, color);
-		} 
-		if (cornername & 0x2) {
+		}
+		if (cornername & 0x2)
+		{
 			drawPixel(x0 + x, y0 - y, color);
 			drawPixel(x0 + y, y0 - x, color);
 		}
-		if (cornername & 0x8) {
+		if (cornername & 0x8)
+		{
 			drawPixel(x0 - y, y0 + x, color);
 			drawPixel(x0 - x, y0 + y, color);
 		}
-		if (cornername & 0x1) {
+		if (cornername & 0x1)
+		{
 			drawPixel(x0 - y, y0 - x, color);
 			drawPixel(x0 - x, y0 - y, color);
 		}
 	}
 }
 
+/*!
+	@brief fills a circle where (x0,y0) are center coordinates an r is circle radius.
+	@param x0 circle center x position
+	@param y0 circle center y position
+	@param r radius of circle
+	@param color color of the circle
+*/
 void ERMCH1115_graphics::fillCircle(int16_t x0, int16_t y0, int16_t r,
-									uint8_t color) {
-	drawFastVLine(x0, y0-r, 2*r+1, color);
+									uint8_t color)
+{
+	drawFastVLine(x0, y0 - r, 2 * r + 1, color);
 	fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
-// Used to do circles and roundrects
+/*!
+	@brief Used internally by fill circle fillRoundRect and fillcircle
+*/
 void ERMCH1115_graphics::fillCircleHelper(int16_t x0, int16_t y0, int16_t r,
-		uint8_t cornername, int16_t delta, uint8_t color) {
+										  uint8_t cornername, int16_t delta, uint8_t color)
+{
 
-	int16_t f     = 1 - r;
+	int16_t f = 1 - r;
 	int16_t ddF_x = 1;
 	int16_t ddF_y = -2 * r;
-	int16_t x     = 0;
-	int16_t y     = r;
+	int16_t x = 0;
+	int16_t y = r;
 
-	while (x<y) {
-		if (f >= 0) {
+	while (x < y)
+	{
+		if (f >= 0)
+		{
 			y--;
 			ddF_y += 2;
-			f     += ddF_y;
+			f += ddF_y;
 		}
 		x++;
 		ddF_x += 2;
-		f     += ddF_x;
+		f += ddF_x;
 
-		if (cornername & 0x1) {
-			drawFastVLine(x0+x, y0-y, 2*y+1+delta, color);
-			drawFastVLine(x0+y, y0-x, 2*x+1+delta, color);
+		if (cornername & 0x1)
+		{
+			drawFastVLine(x0 + x, y0 - y, 2 * y + 1 + delta, color);
+			drawFastVLine(x0 + y, y0 - x, 2 * x + 1 + delta, color);
 		}
-		if (cornername & 0x2) {
-			drawFastVLine(x0-x, y0-y, 2*y+1+delta, color);
-			drawFastVLine(x0-y, y0-x, 2*x+1+delta, color);
+		if (cornername & 0x2)
+		{
+			drawFastVLine(x0 - x, y0 - y, 2 * y + 1 + delta, color);
+			drawFastVLine(x0 - y, y0 - x, 2 * x + 1 + delta, color);
 		}
 	}
 }
 
+/*!
+	@brief draws a line from (x0,y0) to (x1,y1).
+	@param x0 x start coordinate
+	@param y0 y start coordinate
+	@param x1 x end coordinate
+	@param y1 y end coordinate
+	@param color color to draw line
+*/
 void ERMCH1115_graphics::drawLine(int16_t x0, int16_t y0,
-								int16_t x1, int16_t y1,
-								uint8_t color) {
+								  int16_t x1, int16_t y1,
+								  uint8_t color)
+{
 	int16_t steep = abs(y1 - y0) > abs(x1 - x0);
-	if (steep) {
-		swap(x0, y0);
-		swap(x1, y1);
+	if (steep)
+	{
+		OLEDCH1115swap(x0, y0);
+		OLEDCH1115swap(x1, y1);
 	}
 
-	if (x0 > x1) {
-		swap(x0, x1);
-		swap(y0, y1);
+	if (x0 > x1)
+	{
+		OLEDCH1115swap(x0, x1);
+		OLEDCH1115swap(y0, y1);
 	}
 
 	int16_t dx, dy;
@@ -153,113 +248,209 @@ void ERMCH1115_graphics::drawLine(int16_t x0, int16_t y0,
 	int16_t err = dx / 2;
 	int16_t ystep;
 
-	if (y0 < y1) {
+	if (y0 < y1)
+	{
 		ystep = 1;
-	} else {
+	}
+	else
+	{
 		ystep = -1;
 	}
 
-	for (; x0<=x1; x0++) {
-		if (steep) {
+	for (; x0 <= x1; x0++)
+	{
+		if (steep)
+		{
 			drawPixel(y0, x0, color);
-		} else {
+		}
+		else
+		{
 			drawPixel(x0, y0, color);
 		}
 		err -= dy;
-		if (err < 0) {
+		if (err < 0)
+		{
 			y0 += ystep;
 			err += dx;
 		}
 	}
 }
 
-// Draw a rectangle
+/*!
+	@brief draws rectangle at (x,y) where h is height and w is width of the rectangle.
+	@param x x start coordinate
+	@param y y start coordinate
+	@param w width of the rectangle
+	@param h height of the rectangle
+	@param color color to draw  rect
+*/
 void ERMCH1115_graphics::drawRect(int16_t x, int16_t y,
-								int16_t w, int16_t h,
-								uint8_t color) {
+								  int16_t w, int16_t h,
+								  uint8_t color)
+{
 	drawFastHLine(x, y, w, color);
-	drawFastHLine(x, y+h-1, w, color);
+	drawFastHLine(x, y + h - 1, w, color);
 	drawFastVLine(x, y, h, color);
-	drawFastVLine(x+w-1, y, h, color);
+	drawFastVLine(x + w - 1, y, h, color);
 }
 
+/*!
+	@brief Draws a vertical line starting at (x,y) with height h.
+	@param x The starting x coordinate
+	@param y The starting y coordinate
+	@param h The height of the line
+	@param color The color of the line
+*/
 void ERMCH1115_graphics::drawFastVLine(int16_t x, int16_t y,
-								 int16_t h, uint8_t color) {
-	drawLine(x, y, x, y+h-1, color);
+									   int16_t h, uint8_t color)
+{
+	drawLine(x, y, x, y + h - 1, color);
 }
 
+/*!
+	@brief Draws a horizontal line starting at (x,y) with width w.
+	@param x The starting x coordinate
+	@param y The starting y coordinate
+	@param w The width of the line
+	@param color The color of the line
+*/
 void ERMCH1115_graphics::drawFastHLine(int16_t x, int16_t y,
-								 int16_t w, uint8_t color) {
-	drawLine(x, y, x+w-1, y, color);
+									   int16_t w, uint8_t color)
+{
+	drawLine(x, y, x + w - 1, y, color);
 }
 
+/*!
+	@brief fills a rectangle starting from coordinates (x,y) with width of w and height of h.
+	@param x x coordinate
+	@param y y coordinate
+	@param w width of the rectangle
+	@param h height of the rectangle
+	@param color color to fill  rectangle
+*/
 void ERMCH1115_graphics::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
-								uint8_t color) {
-	for (int16_t i=x; i<x+w; i++) {
+								  uint8_t color)
+{
+	for (int16_t i = x; i < x + w; i++)
+	{
 		drawFastVLine(i, y, h, color);
 	}
 }
 
-void ERMCH1115_graphics::fillScreen(uint8_t color) {
+/*!
+	@brief Fills the whole screen with a given color.
+	@param  color color to fill screen
+*/
+void ERMCH1115_graphics::fillScreen(uint8_t color)
+{
 	fillRect(0, 0, _width, _height, color);
 }
 
-// Draw a rounded rectangle
+/*!
+	@brief draws a rectangle with rounded edges
+	@param x x start coordinate
+	@param y y start coordinate
+	@param w width of the rectangle
+	@param h height of the rectangle
+	@param r radius of the rounded edges
+	@param color color to draw rectangle
+*/
 void ERMCH1115_graphics::drawRoundRect(int16_t x, int16_t y, int16_t w,
-	int16_t h, int16_t r, uint8_t color) {
-	drawFastHLine(x+r  , y    , w-2*r, color); // Top
-	drawFastHLine(x+r  , y+h-1, w-2*r, color); // Bottom
-	drawFastVLine(x    , y+r  , h-2*r, color); // Left
-	drawFastVLine(x+w-1, y+r  , h-2*r, color); // Right
+									   int16_t h, int16_t r, uint8_t color)
+{
+	drawFastHLine(x + r, y, w - 2 * r, color);		   // Top
+	drawFastHLine(x + r, y + h - 1, w - 2 * r, color); // Bottom
+	drawFastVLine(x, y + r, h - 2 * r, color);		   // Left
+	drawFastVLine(x + w - 1, y + r, h - 2 * r, color); // Right
 	// draw four corners
-	drawCircleHelper(x+r    , y+r    , r, 1, color);
-	drawCircleHelper(x+w-r-1, y+r    , r, 2, color);
-	drawCircleHelper(x+w-r-1, y+h-r-1, r, 4, color);
-	drawCircleHelper(x+r    , y+h-r-1, r, 8, color);
+	drawCircleHelper(x + r, y + r, r, 1, color);
+	drawCircleHelper(x + w - r - 1, y + r, r, 2, color);
+	drawCircleHelper(x + w - r - 1, y + h - r - 1, r, 4, color);
+	drawCircleHelper(x + r, y + h - r - 1, r, 8, color);
 }
 
-// Fill a rounded rectangle
+/*!
+	@brief Fills a rectangle with rounded edges
+	@param x x start coordinate
+	@param y y start coordinate
+	@param w width of the rectangle
+	@param h height of the rectangle
+	@param r  radius of the rounded edges
+	@param color color to fill round  rectangle
+*/
 void ERMCH1115_graphics::fillRoundRect(int16_t x, int16_t y, int16_t w,
-								 int16_t h, int16_t r, uint8_t color) {
-	fillRect(x+r, y, w-2*r, h, color);
+									   int16_t h, int16_t r, uint8_t color)
+{
+	fillRect(x + r, y, w - 2 * r, h, color);
 
-	fillCircleHelper(x+w-r-1, y+r, r, 1, h-2*r-1, color);
-	fillCircleHelper(x+r    , y+r, r, 2, h-2*r-1, color);
+	fillCircleHelper(x + w - r - 1, y + r, r, 1, h - 2 * r - 1, color);
+	fillCircleHelper(x + r, y + r, r, 2, h - 2 * r - 1, color);
 }
 
-// Draw a triangle
+/*!
+	@brief draws a triangle of coordinates (x0,y0), (x1,y1) and (x2,y2).
+	@param x0 x start coordinate point 1
+	@param y0 y start coordinate point 1
+	@param x1 x start coordinate point 2
+	@param y1 y start coordinate point 2
+	@param x2 x start coordinate point 3
+	@param y2 y start coordinate point 3
+	@param color color to draw triangle
+*/
 void ERMCH1115_graphics::drawTriangle(int16_t x0, int16_t y0,
-								int16_t x1, int16_t y1,
-								int16_t x2, int16_t y2, uint8_t color) {
+									  int16_t x1, int16_t y1,
+									  int16_t x2, int16_t y2, uint8_t color)
+{
 	drawLine(x0, y0, x1, y1, color);
 	drawLine(x1, y1, x2, y2, color);
 	drawLine(x2, y2, x0, y0, color);
 }
 
-// Fill a triangle
-void ERMCH1115_graphics::fillTriangle ( int16_t x0, int16_t y0,
-									int16_t x1, int16_t y1,
-									int16_t x2, int16_t y2, uint8_t color) {
+/*!
+	@brief Fills a triangle of coordinates (x0,y0), (x1,y1) and (x2,y2).
+	@param x0 x start coordinate point 1
+	@param y0 y start coordinate point 1
+	@param x1 x start coordinate point 2
+	@param y1 y start coordinate point 2
+	@param x2 x start coordinate point 3
+	@param y2 y start coordinate point 3
+	@param color color to fill  triangle
+*/
+void ERMCH1115_graphics::fillTriangle(int16_t x0, int16_t y0,
+									  int16_t x1, int16_t y1,
+									  int16_t x2, int16_t y2, uint8_t color)
+{
 
 	int16_t a, b, y, last;
 
-	if (y0 > y1) {
-		swap(y0, y1); swap(x0, x1);
+	if (y0 > y1)
+	{
+		OLEDCH1115swap(y0, y1);
+		OLEDCH1115swap(x0, x1);
 	}
-	if (y1 > y2) {
-		swap(y2, y1); swap(x2, x1);
+	if (y1 > y2)
+	{
+		OLEDCH1115swap(y2, y1);
+		OLEDCH1115swap(x2, x1);
 	}
-	if (y0 > y1) {
-		swap(y0, y1); swap(x0, x1);
+	if (y0 > y1)
+	{
+		OLEDCH1115swap(y0, y1);
+		OLEDCH1115swap(x0, x1);
 	}
 
-	if(y0 == y2) { 
+	if (y0 == y2)
+	{
 		a = b = x0;
-		if(x1 < a)      a = x1;
-		else if(x1 > b) b = x1;
-		if(x2 < a)      a = x2;
-		else if(x2 > b) b = x2;
-		drawFastHLine(a, y0, b-a+1, color);
+		if (x1 < a)
+			a = x1;
+		else if (x1 > b)
+			b = x1;
+		if (x2 < a)
+			a = x2;
+		else if (x2 > b)
+			b = x2;
+		drawFastHLine(a, y0, b - a + 1, color);
 		return;
 	}
 
@@ -271,414 +462,393 @@ void ERMCH1115_graphics::fillTriangle ( int16_t x0, int16_t y0,
 		dx12 = x2 - x1,
 		dy12 = y2 - y1;
 	int32_t
-		sa   = 0,
-		sb   = 0;
+		sa = 0,
+		sb = 0;
 
-	if(y1 == y2) last = y1;   
-	else         last = y1-1; 
+	if (y1 == y2)
+		last = y1;
+	else
+		last = y1 - 1;
 
-	for(y=y0; y<=last; y++) {
-		a   = x0 + sa / dy01;
-		b   = x0 + sb / dy02;
+	for (y = y0; y <= last; y++)
+	{
+		a = x0 + sa / dy01;
+		b = x0 + sb / dy02;
 		sa += dx01;
 		sb += dx02;
 
-		if(a > b) swap(a,b);
-		drawFastHLine(a, y, b-a+1, color);
+		if (a > b)
+			OLEDCH1115swap(a, b);
+		drawFastHLine(a, y, b - a + 1, color);
 	}
 
 	sa = dx12 * (y - y1);
 	sb = dx02 * (y - y0);
-	for(; y<=y2; y++) {
-		a   = x1 + sa / dy12;
-		b   = x0 + sb / dy02;
+	for (; y <= y2; y++)
+	{
+		a = x1 + sa / dy12;
+		b = x0 + sb / dy02;
 		sa += dx12;
 		sb += dx02;
 
-		if(a > b) swap(a,b);
-		drawFastHLine(a, y, b-a+1, color);
+		if (a > b)
+			OLEDCH1115swap(a, b);
+		drawFastHLine(a, y, b - a + 1, color);
 	}
 }
 
-
-// Draw a 1-bit color bitmap at the specified x, y position from the
-// provided bitmap buffer (using colour as the
-// foreground colour and bg as the background colour.
-// Variable drawBitmapAddr controls data addressing
-// drawBitmapAddr  = true Vertical  data addressing
-// drawBitmapAddr  = false Horizontal data addressing
-void ERMCH1115_graphics::drawBitmap(int16_t x, int16_t y,
-						const uint8_t *bitmap, int16_t w, int16_t h,
-						uint8_t color, uint8_t bg) {
-							
-if (drawBitmapAddr== true)
+/*!
+	@brief Draw a 1-bit color bitmap
+	@param x x co-ord position
+	@param y y co-ord posiiton a
+	@param bitmap pointer to bitmap data (must be PROGMEM memory)
+	@param w width of the bitmap
+	@param h height of the bitmap
+	@param color foreground colour
+	@param bg background colour.
+	@param sizeOfBitmap size of the bitmap
+	@return Will return true for success, false for failure
+		Failure could be  out of bounds , wrong size , invalid pointer object.
+	@note Variable drawBitmapAddr controls data addressing
+		-# drawBitmapAddr  = true Vertical  data addressing
+		-# drawBitmapAddr  = false Horizontal data addressing
+		-# A vertical  Bitmap's h must be divisible by 8.for a  bitmap with wh=128 & h=64.
+		-# Bitmap excepted size = 128 * (64/8) = 1024 bytes.
+		-# A horizontal Bitmap's w must be divisible by 8. For a bitmap with w=88 & h=48.
+		-# Bitmap excepted size = (88/8) * 48 = 528 bytes.
+*/
+uint8_t ERMCH1115_graphics::drawBitmap(int16_t x, int16_t y,
+									   const uint8_t *bitmap, int16_t w, int16_t h,
+									   uint8_t color, uint8_t bg, uint16_t sizeOfBitmap)
 {
-// Vertical byte bitmaps mode 
-	uint8_t vline;
-	int16_t i, j, r = 0, yin = y;
-	
-	for (i=0; i<(w+1); i++ ) {
-		if (r == (h+7)/8 * w) break;
-		vline = bitmap [r] ;
-		r++;
-		if (i == w) {
-			y = y+8;
-			i = 0;
-		}
-		
-		for (j=0; j<8; j++ ) {
-			if (y+j-yin == h) break;
-			if (vline & 0x1) {
-				drawPixel(x+i, y+j, color);
-			}
-			else {
-				drawPixel(x+i, y+j, bg);
-			}	
-			vline >>= 1;
-		}
-	}
-} else if (drawBitmapAddr == false) {
-// Horizontal byte bitmaps mode 
-	int16_t byteWidth = (w + 7) / 8;
-	uint8_t byte = 0;
-	for (int16_t j = 0; j < h; j++, y++) 
+
+	// User error checks
+	// 1. Completely out of bounds?
+	if (x > WIDTH || y > HEIGHT)
 	{
-		for (int16_t i = 0; i < w; i++) 
-		{
-			if (i & 7)
-				byte <<= 1;
-			else
-				byte = bitmap[j * byteWidth + i / 8];
-			drawPixel(x+i, y, (byte & 0x80) ? color : bg);
-		}
+		printf("Error drawBitmap 2 : Bitmap co-ord out of bounds, check x and y\n");
+		return 2;
+	}
+	// 2. bitmap weight and height
+	if (w > WIDTH || h > HEIGHT)
+	{
+		printf("Error drawBitmap 3 : Bitmap is larger than screen, check w and h\n");
+		return 3;
+	}
+	// 3. bitmap is null
+	if (bitmap == nullptr)
+	{
+		printf("Error drawBitmap 4 : Bitmap is is not valid pointer\n");
+		return 4;
 	}
 
-} // end of elseif
-}
-
-
-size_t ERMCH1115_graphics::write(uint8_t c) {
-
-if (_FontNumber < OLEDFontType_Bignum)
+	if (_drawBitmapAddr == true)
 	{
-		if (c == '\n') 
+		if (sizeOfBitmap != (w * (h / 8))) // 4A.check vertical bitmap size
 		{
-			cursor_y += textsize*_CurrentFontheight;
-			cursor_x  = 0;
-		} else if (c == '\r') 
-		{
-			// Skip 
-		} else 
-		{
-			drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
-			cursor_x += textsize*(_CurrentFontWidth+1);
-			if (wrap && (cursor_x > (_width - textsize*(_CurrentFontWidth+1)))) 
-			{
-				cursor_y += textsize*_CurrentFontheight;
-				cursor_x = 0;
-			}
+			printf("Error drawBitmap 4A : vertical Bitmap size is incorrect:   %u  %i  %i \n", sizeOfBitmap, w, h);
+			printf("Check size =  (w*(h/8) or Is bitmap height  divisible evenly by eight or is all bitmap data there or too much \n");
+			return false;
 		}
-		
-	}else if (_FontNumber == OLEDFontType_Bignum || _FontNumber == OLEDFontType_Mednum)
-	{
-		uint8_t radius = 3;
-		if (_FontNumber == OLEDFontType_Mednum) radius = 2;
-		if (c == '\n') 
+		// Vertical byte bitmaps mode
+		uint8_t vline;
+		int16_t i, j, r = 0, yin = y;
+		for (i = 0; i < (w + 1); i++)
 		{
-			cursor_y += _CurrentFontheight;
-			cursor_x  = 0;
-		} else if (c == '\r') 
-		{
-			// Skip
-		} else if (c == '.')
-		{
-			// draw a circle for decimal point skip a space.
-			fillCircle(cursor_x+(_CurrentFontWidth/2), cursor_y + (_CurrentFontheight-8), radius, textcolor);
-			cursor_x += (_CurrentFontWidth+1);
-			if (wrap && (cursor_x  > (_width - (_CurrentFontWidth+1)))) 
-			{
-				cursor_y += _CurrentFontheight;
-				cursor_x = 0;
-			}
-		}else 
-		{
-			drawCharNumFont(cursor_x, cursor_y, c, textcolor, textbgcolor);
-			cursor_x += (_CurrentFontWidth+1);
-			if (wrap && (cursor_x > (_width - (_CurrentFontWidth+1)))) 
-			{
-				cursor_y += _CurrentFontheight;
-				cursor_x = 0;
-			}
-		}
-	}
-
-	return 1;
-}
-
-// Draw a character
-void ERMCH1115_graphics::drawChar(int16_t x, int16_t y, unsigned char c,
-								uint8_t color, uint8_t bg, uint8_t size) {
-
-	if((x >= _width)            || // Clip right
-		 (y >= _height)           || // Clip bottom
-		 ((x + (_CurrentFontWidth+1) * size - 1) < 0) || // Clip left
-		 ((y + _CurrentFontheight * size - 1) < 0))   // Clip top
-		return;
-
-	for (int8_t i=0; i<(_CurrentFontWidth+1); i++ ) {
-		uint8_t line;
-		if (i == _CurrentFontWidth)
-		{ 
-			line = 0x0;
-		}
-		else 
-		{
-			 switch (_FontNumber) {
-
-				case OLEDFontType_Default : line = pFontDefaultptr[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-				case OLEDFontType_Thick : line = pFontThickptr[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-				case OLEDFontType_SevenSeg: line = pFontSevenSegptr[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-				case OLEDFontType_Wide : line = pFontWideptr[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-				case OLEDFontType_Tiny : line = pFontTinyptr[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-				case OLEDFontType_Homespun : line = pFontHomeSpunptr[((c - _CurrentFontoffset) * _CurrentFontWidth) + i]; break;
-				default: // wrong font number
-						return;
+			if (r == (h + 7) / 8 * w)
 				break;
-				}
-		}
-		for (int8_t j = 0; j<_CurrentFontheight; j++) {
-			if (line & 0x1) {
-				if (size == 1) // default size
-					drawPixel(x+i, y+j, color);
-				else {  // big size
-					fillRect(x+(i*size), y+(j*size), size, size, color);
-				} 
-			} else if (bg != color) {
-				if (size == 1) // default size
-					drawPixel(x+i, y+j, bg);
-				else {  // big size
-					fillRect(x+i*size, y+j*size, size, size, bg);
-				}
+			vline = bitmap[r];
+			r++;
+			if (i == w)
+			{
+				y = y + 8;
+				i = 0;
 			}
-			line >>= 1;
+
+			for (j = 0; j < 8; j++)
+			{
+				if (y + j - yin == h)
+					break;
+				if (vline & 0x1)
+				{
+					drawPixel(x + i, y + j, color);
+				}
+				else
+				{
+					drawPixel(x + i, y + j, bg);
+				}
+				vline >>= 1;
+			}
 		}
 	}
+	else if (_drawBitmapAddr == false)
+	{
+		// 4B.check Horizontal bitmap size
+		if (sizeOfBitmap != ((w / 8) * h))
+		{
+			printf("Error drawBitmap 4B : Horizontal Bitmap size is incorrect:  Check Size =  (w/8 * h): %u  %i  %i \n", sizeOfBitmap, w, h);
+			printf("Check size = ((w/8)*h) or Is bitmap width divisible evenly by eight or is all bitmap data there or too much \n");
+			return false;
+		}
+		// Horizontal byte bitmaps mode
+		int16_t byteWidth = (w + 7) / 8;
+		uint8_t byte = 0;
+		for (int16_t j = 0; j < h; j++, y++)
+		{
+			for (int16_t i = 0; i < w; i++)
+			{
+				if (i & 7)
+					byte <<= 1;
+				else
+					byte = bitmap[j * byteWidth + i / 8];
+				drawPixel(x + i, y, (byte & 0x80) ? color : bg);
+			}
+		}
+
+	} // end of elseif
+	return 0;
+} // end of function
+
+/*!
+	@brief set the cursor position
+	@param x X co-ord position
+	@param y Y co-ord position
+*/
+void ERMCH1115_graphics::setCursor(int16_t x, int16_t y)
+{
+	_cursor_x = x;
+	_cursor_y = y;
 }
 
-void ERMCH1115_graphics::setCursor(int16_t x, int16_t y) {
-	cursor_x = x;
-	cursor_y = y;
+/*!
+	@brief turn on or off screen wrap of the text (fonts 1-6)
+	@param w TRUE on
+*/
+void ERMCH1115_graphics::setTextWrap(bool w)
+{
+	_textwrap = w;
 }
 
-void ERMCH1115_graphics::setTextSize(uint8_t s) {
-	textsize = (s > 0) ? s : 1;
+/*!
+   @brief Gets the _rotation of the display
+   @return _rotation value 0-3
+*/
+uint8_t ERMCH1115_graphics::getRotation(void) const
+{
+	return _rotation;
 }
 
-void ERMCH1115_graphics::setTextColor(uint8_t c) {
-	textcolor = textbgcolor = c;
-}
-
-void ERMCH1115_graphics::setTextColor(uint8_t c, uint8_t b) {
-	textcolor   = c;
-	textbgcolor = b; 
-}
-
-void ERMCH1115_graphics::setTextWrap(bool w) {
-	wrap = w;
-}
-
-uint8_t ERMCH1115_graphics::getRotation(void) const {
-	return rotation;
-}
-
-void ERMCH1115_graphics::setRotation(uint8_t x) {
-	rotation = (x & 3);
-	switch(rotation) {
-	 case 0:
-	 case 2:
-		_width  = WIDTH;
+/*!
+   @brief Sets the _rotation of the display
+   @param x _rotation value 0-3
+*/
+void ERMCH1115_graphics::setRotation(uint8_t x)
+{
+	_rotation = (x & 3);
+	switch (_rotation)
+	{
+	case 0:
+	case 2:
+		_width = WIDTH;
 		_height = HEIGHT;
 		break;
-	 case 1:
-	 case 3:
-		_width  = HEIGHT;
+	case 1:
+	case 3:
+		_width = HEIGHT;
 		_height = WIDTH;
 		break;
 	}
 }
 
-// Return the size of the display (per current rotation)
-int16_t ERMCH1115_graphics::width(void) const {
+/*!
+	@brief Gets the width of the display (per current rotation)
+	@return width member of display in pixels
+*/
+int16_t ERMCH1115_graphics::width(void) const
+{
 	return _width;
 }
- 
-int16_t ERMCH1115_graphics::height(void) const {
+
+/*!
+	@brief Gets the height of the display (per current rotation)
+	@return height member of display in pixels
+*/
+int16_t ERMCH1115_graphics::height(void) const
+{
 	return _height;
 }
 
-//Func Desc : sets the data addressing mode in drawBitmap function.
-//Param 1 bool mode  , true default
-// True =  bitmap data vertically addressed 
-// False = bitmap data horizontally addressed 
-void ERMCH1115_graphics::setDrawBitmapAddr(bool mode) {
-	drawBitmapAddr = mode;
-}
-
-// Desc :  Set the font number
-// Param1: fontnumber 1-8
-// 1=default 2=thick 3=seven segment 4=wide 5=tiny 6=homespun
-// 7= bignum 8=mednum
-
-void ERMCH1115_graphics::setFontNum(OLEDFontType_e FontNumber) 
+/*!
+	@brief sets the data addressing mode in drawBitmap function.
+	@param  mode boolean mode  , true default
+		-# True =  bitmap data vertically addressed
+		-# False = bitmap data horizontally addressed
+*/
+void ERMCH1115_graphics::setDrawBitmapAddr(bool mode)
 {
-	_FontNumber = FontNumber;
-		
-	switch (_FontNumber) {
-		case OLEDFontType_Default:  // Norm default 5 by 8
-			_CurrentFontWidth = OLEDFontWidth_5;
-			_CurrentFontoffset =  OLEDFontOffset_Extend;
-			_CurrentFontheight = OLEDFontHeight_8;
-		break; 
-		case OLEDFontType_Thick: // Thick 7 by 8 (NO LOWERCASE LETTERS)
-			_CurrentFontWidth = OLEDFontWidth_7;
-			_CurrentFontoffset = OLEDFontOffset_Space;
-			_CurrentFontheight = OLEDFontHeight_8;
-		break; 
-		case OLEDFontType_SevenSeg:  // Seven segment 4 by 8
-			_CurrentFontWidth = OLEDFontWidth_4;
-			_CurrentFontoffset = OLEDFontOffset_Space;
-			_CurrentFontheight = OLEDFontHeight_8;
-		break;
-		case OLEDFontType_Wide : // Wide  8 by 8 (NO LOWERCASE LETTERS)
-			_CurrentFontWidth = OLEDFontWidth_8;
-			_CurrentFontoffset = OLEDFontOffset_Space;
-			_CurrentFontheight = OLEDFontHeight_8;
-		break; 
-		case OLEDFontType_Tiny:  // tiny 3 by 8
-			_CurrentFontWidth = OLEDFontWidth_3;
-			_CurrentFontoffset =  OLEDFontOffset_Space;
-			_CurrentFontheight = OLEDFontHeight_8;
-		break;
-		case OLEDFontType_Homespun: // homespun 7 by 8 
-			_CurrentFontWidth = OLEDFontWidth_7;
-			_CurrentFontoffset = OLEDFontOffset_Space;
-			_CurrentFontheight = OLEDFontHeight_8;
-		break;
-		case OLEDFontType_Bignum : // big nums 16 by 32 (NUMBERS + : only)
-			_CurrentFontWidth = OLEDFontWidth_16;
-			_CurrentFontoffset = OLEDFontOffset_Number;
-			_CurrentFontheight = OLEDFontHeight_32;
-		break; 
-		case OLEDFontType_Mednum: // med nums 16 by 16 (NUMBERS + : only)
-			_CurrentFontWidth = OLEDFontWidth_16;
-			_CurrentFontoffset =  OLEDFontOffset_Number;
-			_CurrentFontheight = OLEDFontHeight_16;
-		break;
-		default: // if wrong font num passed in,  set to default
-			_CurrentFontWidth = OLEDFontWidth_5;
-			_CurrentFontoffset =  OLEDFontOffset_Extend;
-			_CurrentFontheight = OLEDFontHeight_8;
-			_FontNumber = OLEDFontType_Default;
-		break;
-	}
-	
+	_drawBitmapAddr = mode;
 }
 
-// Desc: writes a char (c) on the TFT
-// Param 1 , 2 : coordinates (x, y).
-// Param 3: The ASCII character
-// Param 4: color 565 16-bit
-// Param 5: background color
-// Notes for font 7-8 bignums = mednums
-
-void ERMCH1115_graphics::drawCharNumFont(uint8_t x, uint8_t y, uint8_t c, uint8_t color , uint8_t bg) 
+/*!
+	@brief Write 1 character on OLED.
+	@param  x character starting position on x-axis. Valid values: 0..127
+	@param  y character starting position on x-axis. Valid values: 0..63
+	@param  value Character to be written.
+	@return Will return
+		-# 0 success
+		-# 2 co-ords out of bounds check x and y
+		-# 3 Character out of ASCII Font bounds, check Font range
+ */
+uint8_t ERMCH1115_graphics::writeChar(int16_t x, int16_t y, char value)
 {
-		if (_FontNumber < OLEDFontType_Bignum){return;}
-		uint8_t i, j;
-		uint8_t ctemp = 0, y0 = y; 
+	uint16_t fontIndex = 0;
+	uint16_t rowCount = 0;
+	uint16_t count = 0;
+	uint8_t colIndex;
+	uint16_t temp = 0;
+	int16_t colByte, cx, cy;
+	int16_t colbit;
 
-		for (i = 0; i < _CurrentFontheight*2; i++) {
-			if (_FontNumber == OLEDFontType_Bignum){
-				ctemp = pFontBigNumptr[c - _CurrentFontoffset][i];
-			}
-			else if (_FontNumber == OLEDFontType_Mednum){
-				ctemp = pFontMedNumptr[c - _CurrentFontoffset][i];
-			}
-
-				for (j = 0; j < 8; j++) {
-						if (ctemp & 0x80) {
-								drawPixel(x, y, color);
-						} else {
-								drawPixel(x, y, bg);
-						}
-
-						ctemp <<= 1;
-						y++;
-						if ((y - y0) == _CurrentFontheight) {
-								y = y0;
-								x++;
-								break;
-						}
-				}
-		}
-}
-
-// Desc: Writes text string (*ptext) on the TFT 
-// Param 1 , 2 : coordinates (x, y).
-// Param 3: pointer to string 
-// Param 4: color 
-// Param 5: background color
-// Notes for font 7-8 bignums = mednums
-
-void ERMCH1115_graphics::drawTextNumFont(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg) 
-{
-		
-		if (_FontNumber < OLEDFontType_Bignum){return;}
-		
-		while (*pText != '\0') 
-		{
-				if (x > (_width - _CurrentFontWidth )) 
-				{
-						x = 0;
-						y += _CurrentFontheight ;
-						if (y > (_height - _CurrentFontheight)) 
-						{
-								y = x = 0;
-						}
-				}
-				
-				drawCharNumFont(x, y, *pText, color, bg);
-				x += _CurrentFontWidth ;
-				pText++;
-		}
-}
-
-// Desc: Writes text string (*ptext) on the OLED
-// Param 1 , 2 : coordinates (x, y).
-// Param 3: pointer to string 
-// Param 4: color 
-// Param 5: background color
-// Notes for font 1- 6 only
-void ERMCH1115_graphics::drawText(uint8_t x, uint8_t y, char *pText, uint8_t color, uint8_t bg, uint8_t size) {
-	if (_FontNumber >= OLEDFontType_Bignum){return;}
-	uint8_t cursor_x, cursor_y;
-	cursor_x = x, cursor_y = y;
-	while (*pText != '\0') 
+	// 1. Check for screen out of  bounds
+	if ((x >= _width) ||				// Clip right
+		(y >= _height) ||				// Clip bottom
+		((x + _Font_X_Size + 1) < 0) || // Clip left
+		((y + _Font_Y_Size) < 0))		// Clip top
 	{
-		if (wrap && ((cursor_x + size * _CurrentFontWidth) > _width)) 
-		{
-			cursor_x = 0;
-			cursor_y = cursor_y + size * 7 + 3;
-			if (cursor_y > _height) cursor_y = _height;
-		}
-		drawChar(cursor_x, cursor_y, *pText, color, bg, size);
-		cursor_x = cursor_x + size * (_CurrentFontWidth + 1);
-		if (cursor_x > _width) cursor_x = _width;
-		pText++;
+		printf("ERMCH1115_graphics::writeChar Error 2: Co-ordinates out of bounds \r\n");
+		return 2;
 	}
+	// 2. Check for character out of font range bounds
+	if (value < _FontOffset || value >= (_FontOffset + _FontNumChars + 1))
+	{
+		printf("ERMCH1115_graphics::writeChar Error 3: Character out of Font bounds  %u : %u<->%u \r\n", value, _FontOffset, _FontOffset + _FontNumChars + 1);
+		return 3;
+	}
+	if (_Font_Y_Size % 8 == 0) // Is the font height divisible by 8
+	{
+		fontIndex = ((value - _FontOffset) * (_Font_X_Size * (_Font_Y_Size / 8))) + 4;
+		for (rowCount = 0; rowCount < (_Font_Y_Size / 8); rowCount++)
+		{
+			for (count = 0; count < _Font_X_Size; count++)
+			{
+				temp = *(_FontSelect + fontIndex + count + (rowCount * _Font_X_Size));
+				for (colIndex = 0; colIndex < 8; colIndex++)
+				{
+					if (temp & (1 << colIndex))
+					{
+						drawPixel(x + count, y + (rowCount * 8) + colIndex, !getInvertFont());
+					}
+					else
+					{
+						drawPixel(x + count, y + (rowCount * 8) + colIndex, getInvertFont());
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		fontIndex = ((value - _FontOffset) * ((_Font_X_Size * _Font_Y_Size) / 8)) + 4;
+		colByte = *(_FontSelect + fontIndex);
+		colbit = 7;
+		for (cx = 0; cx < _Font_X_Size; cx++)
+		{
+			for (cy = 0; cy < _Font_Y_Size; cy++)
+			{
+				if ((colByte & (1 << colbit)) != 0)
+				{
+					drawPixel(x + cx, y + cy, !getInvertFont());
+				}
+				else
+				{
+					drawPixel(x + cx, y + cy, getInvertFont());
+				}
+				colbit--;
+				if (colbit < 0)
+				{
+					colbit = 7;
+					fontIndex++;
+					colByte = *(_FontSelect + fontIndex);
+				}
+			}
+		}
+	}
+	return 0;
 }
 
+/*!
+	@brief Write Text character array on OLED.
+	@param  x character starting position on x-axis.
+	@param  y character starting position on y-axis.
+	@param  pText Pointer to the array of the text to be written.
+	@return Will return
+		-# 0 Success
+		-# 2 String pText Array invalid pointer object
+		-# 3 Failure in writeChar method upstream
+ */
+uint8_t ERMCH1115_graphics::writeCharString(int16_t x, int16_t y, char *pText)
+{
+	uint8_t count = 0;
+	uint8_t MaxLength = 0;
+	// Check for null pointer
+	if (pText == nullptr)
+	{
+		print("ERMCH1115_graphics::writeCharString Error 2 :String array is not valid pointer\n");
+		return 2;
+	}
+	while (*pText != '\0')
+	{
+		// check if text has reached end of screen
+		if ((x + (count * _Font_X_Size)) > _width - _Font_X_Size)
+		{
+			y = y + _Font_Y_Size;
+			count = 0;
+		}
+		if (writeChar(x + (count * (_Font_X_Size)), y, *pText++) != 0)
+			return 3;
+		count++;
+		MaxLength++;
+		if (MaxLength >= 150)
+			break; // 2nd way out of loop, safety check
+	}
+	return 0;
+}
+
+/*!
+	@brief write method used in the print class when user calls print
+	@param character the character to print
+	@return Will return
+		-# 1. success
+		-# -1. An error in the writeChar method.
+*/
+size_t ERMCH1115_graphics::write(uint8_t character)
+{
+	switch (character)
+	{
+	case '\n':
+		_cursor_y += _Font_Y_Size;
+		_cursor_x = 0;
+		break;
+	case '\r':
+		break;
+	default:
+		if (writeChar(_cursor_x, _cursor_y, character) != 0)
+			return -1;
+		_cursor_x += (_Font_X_Size);
+		if (_textwrap && (_cursor_x > (_width - (_Font_X_Size))))
+		{
+			_cursor_y += _Font_Y_Size;
+			_cursor_x = 0;
+		}
+		break;
+	} // end of switch
+
+	return 1;
+}
+
+/*
 void ERMCH1115_graphics::drawPixel(int16_t x, int16_t y, uint8_t color)
 {
-
+// Defined in the sub class
 }
+*/

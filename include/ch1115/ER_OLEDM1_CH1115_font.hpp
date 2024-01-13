@@ -1,33 +1,32 @@
-/*
-* Project Name: ER_OLEDM1_CH1115
-* File: ER_OLEDM1_CH1115_font.h
-* Description: ER_OLEDM1 OLED driven by CH1115 controller, font file 
-* 8 fonts 
-* Author: Gavin Lyons.
-* URL: https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115_PICO
+/*!
+	@file ER_OLEDM1_CH1115_font.hpp
+	@brief OLED driven by Ch1115 controller. font data file 10 fonts.
+	@author Gavin Lyons.
+	@details
+		-#  1. pFontDefault  6 by 8
+		-#  2. pFontWide  9 by 8 (NO LOWERCASE)
+		-#  3. pFontpico 3 by 6
+		-#  4. pFontSinclairS 8 by 8
+		-#  5. pFontMega  Mega 16 by 16
+		-#  6. pFontArialBold 16 by 16
+		-#  7. pFontHallfetica 16 by 16
+		-#  8. pFontArialRound 16 by 24
+		-#  9. pFontGroTesk 16 by 32
+		-#  10. pFontSixteenSeg 32 by 48 (NUMBERS ONLY + : . -)
 */
 
-#ifndef _ER_OLEDM1_CH1115_font_H
-#define _ER_OLEDM1_CH1115_font_H
+#pragma once
 
-#include <inttypes.h>
+#include <cstdint>
 
-// (1) default  (FUll ASCII with mods)
-// (2) thick (NO LOWERCASE)
-// (3) seven segment 
-// (4) wide (NO LOWERCASE)
-// (5) tiny
-// (6) homespun 
-// (7) big numbers (NUMBERS ONLY )
-// (8) med numbers (NUMBERS ONLY )
-
-extern const unsigned char * pFontDefaultptr;
-extern const unsigned char * pFontThickptr;
-extern const unsigned char * pFontSevenSegptr;
-extern const unsigned char * pFontWideptr;
-extern const  unsigned char * pFontTinyptr;
-extern const unsigned char * pFontHomeSpunptr;
-extern const uint8_t (* pFontBigNumptr)[64];
-extern const uint8_t (* pFontMedNumptr)[32]; 
-
-#endif // guard header
+// Font data is in the cpp file accessed thru extern pointers.
+extern const uint8_t *pFontDefault;	   /**< pFontDefault  6 by 8 */
+extern const uint8_t *pFontWide;	   /**< pFontWide  9 by 8 (NO LOWERCASE) */
+extern const uint8_t *pFontPico;	   /**< pFontpico 3 by 6 */
+extern const uint8_t *pFontSinclairS;  /**< pFontSinclairS 8 by 8 */
+extern const uint8_t *pFontMega;	   /**< pFontMega  Mega 16 by 16 */
+extern const uint8_t *pFontArialBold;  /**< pFontArialBold 16 by 16 */
+extern const uint8_t *pFontHallfetica; /**< pFontHallfetica 16 by 16*/
+extern const uint8_t *pFontArialRound; /**< pFontArialRound 16 by 24 */
+extern const uint8_t *pFontGroTesk;	   /**< pFontGroTesk 16 by 32 */
+extern const uint8_t *pFontSixteenSeg; /**< pFontSixteenSeg 32 by 48 (NUMBERS ONLY + : . -)a */

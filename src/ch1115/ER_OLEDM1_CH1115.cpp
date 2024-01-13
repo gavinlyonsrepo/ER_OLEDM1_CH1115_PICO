@@ -1,35 +1,46 @@
-/*
-* Project Name: ERMCH1115
-* File: ERMCH1115.h
-* Description: ER_OLEDM1 OLED driven by CH1115 controller source file
-* Author: Gavin Lyons.
-* URL: https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115_PICO
+/*!
+   @file ER_OLEDM1_CH1115.cpp
+   @brief ER_OLEDM1 OLED driven by CH1115 controller Source file
+	   Project Name: ER_OLEDM1_CH1115_PICO , URL: https://github.com/gavinlyonsrepo/ER_OLEDM1_CH1115_PICO
+   @author  Gavin Lyons
 */
-#include <stdio.h>
+
 #include "pico/stdlib.h"
 #include "../include/ch1115/ER_OLEDM1_CH1115.hpp"
 #include "../include/ch1115/ER_OLEDM1_CH1115_graphics.hpp"
 
-// Class Constructor
-ERMCH1115  :: ERMCH1115(int8_t cd, int8_t rst, int8_t cs, int8_t sclk, int8_t din) :  ERMCH1115_graphics(OLED_WIDTH, OLED_HEIGHT) 
+/*!
+	@brief init the OLED class object
+	@param oledwidth width of oled in pixels
+	@param oledheight height of oled in pixels
+ */
+ERMCH1115::ERMCH1115(int16_t oledwidth, int16_t oledheight) : ERMCH1115_graphics(oledwidth, oledheight)
 {
-  _OLED_CD = cd;
-  _OLED_RST= rst;
-  _OLED_CS = cs;
-  _OLED_DIN = din;  
-  _OLED_SCLK = sclk;
+	_OLED_HEIGHT = oledheight;
+	_OLED_WIDTH = oledwidth;
+	_OLED_PAGE_NUM = (_OLED_HEIGHT / 8);
+	_bufferWidth = _OLED_WIDTH;
+	_bufferHeight = _OLED_HEIGHT;
 }
 
-
-// Desc: begin Method initialise OLED 
-// Sets pinmodes and SPI setup
-// Param1: OLEDcontrast default = 0x80 , range 0x00 to 0xFE
-// Param2: SPi instance spi1 or spi0 
-// Param3: SPI baudrate in Khz , 1000 = 1 Mhz
-// Max SPI speed on the PICO is 62.5Mhz
-void ERMCH1115::OLEDbegin (uint8_t OLEDcontrast, spi_inst_t *spiType, uint32_t spiSpeedKhz) 
+/*!
+	@brief begin Method initialise OLED Sets pinmodes and SPI setup
+	@param spiType  SPI instance
+	@param spiSpeedKhz SPI bus speed in kiloHz
+	@param cd GPIO command or data pin
+	@param rst GPIO reset line
+	@param cs GPIO chip select lin
+	@param sclk GPIO SPI clock line tied to SPI instance
+	@param din GPIO SPI data line tied to SPI instance(MOSI)
+	@details Max SPI speed on the PICO is 62.5Mhz
+*/
+void ERMCH1115::OLEDSPISetup(spi_inst_t *spiType, uint32_t spiSpeedKhz, int8_t cd, int8_t rst, int8_t cs, int8_t sclk, int8_t din)
 {
-	_OLEDcontrast  = OLEDcontrast ;
+	_OLED_CD = cd;
+	_OLED_RST = rst;
+	_OLED_CS = cs;
+	_OLED_DIN = din;
+	_OLED_SCLK = sclk;
 
 	gpio_init(_OLED_CD);
 	gpio_init(_OLED_RST);
@@ -41,364 +52,457 @@ void ERMCH1115::OLEDbegin (uint8_t OLEDcontrast, spi_inst_t *spiType, uint32_t s
 	gpio_set_dir(_OLED_RST, GPIO_OUT);
 	gpio_set_dir(_OLED_CS, GPIO_OUT);
 	gpio_put(_OLED_CS, true);
-	
+
 	spiInterface = spiType;
-	// Initialize SPI port 
+	// Initialize SPI port
 	spi_init(spiInterface, spiSpeedKhz * 1000);
 	// Initialize SPI pins
 	gpio_set_function(_OLED_SCLK, GPIO_FUNC_SPI);
 	gpio_set_function(_OLED_DIN, GPIO_FUNC_SPI);
 
-    // Set SPI format
-    spi_set_format( spiInterface,   // SPI instance
-                    8,      // Number of bits per transfer
-                    SPI_CPOL_0,      // Polarity (CPOL)
-                    SPI_CPHA_0,      // Phase (CPHA)
-                    SPI_MSB_FIRST);
-
-  
-  	OLEDinit();
+	// Set SPI format
+	spi_set_format(spiInterface, // SPI instance
+				   8,			 // Number of bits per transfer
+				   SPI_CPOL_0,	 // Polarity (CPOL)
+				   SPI_CPHA_0,	 // Phase (CPHA)
+				   SPI_MSB_FIRST);
 }
 
-
-// Desc: Called from OLEDbegin carries out Power on sequence and register init
-// Can be used to reset OLED to default values.
-void ERMCH1115::OLEDinit()
- {
+/*!
+	@brief Called from OLEDbegin carries out Power on sequence and register init
+	@param OLEDcontrast Contrast of the OLED display default = 0x80 , range 0x00 to 0xFE
+*/
+void ERMCH1115::OLEDinit(uint8_t OLEDcontrast = ERMCH115_CONTRAST_DATA_DEFAULT)
+{
+	_OLEDcontrast = OLEDcontrast;
 	ERMCH1115_CS_SetLow;
-	
+
 	OLEDReset();
-	
-	send_command(ERMCH1115_DISPLAY_OFF, 0); 
-	
-	send_command(ERMCH1115_SET_COLADD_LSB, 0); 
-	send_command(ERMCH1115_SET_COLADD_MSB, 0); 
-	send_command(ERMCH1115_SET_PAGEADD, 0); 
-	send_command(ERMCH115_SET_DISPLAY_START_LINE, 0); 
-   
-	send_command(ERMCH115_CONTRAST_CONTROL  ,0); 
-	send_command(_OLEDcontrast, 0);  
-	
-	send_command(ERMCH1115_IREF_REG, 0); 
-	send_command(ERMCH1115_IREF_SET, 0); 
-	
-	send_command(ERMCH1115_SEG_SET_REMAP, 0); 
-	send_command(ERMCH1115_SEG_SET_PADS, 0); 
-	send_command(ERMCH1115_ENTIRE_DISPLAY_ON, 0); 
+
+	send_command(ERMCH1115_DISPLAY_OFF, 0);
+
+	send_command(ERMCH1115_SET_COLADD_LSB, 0);
+	send_command(ERMCH1115_SET_COLADD_MSB, 0);
+	send_command(ERMCH1115_SET_PAGEADD, 0);
+	send_command(ERMCH115_SET_DISPLAY_START_LINE, 0);
+
+	send_command(ERMCH115_CONTRAST_CONTROL, 0);
+	send_command(_OLEDcontrast, 0);
+
+	send_command(ERMCH1115_IREF_REG, 0);
+	send_command(ERMCH1115_IREF_SET, 0);
+
+	send_command(ERMCH1115_SEG_SET_REMAP, 0);
+	send_command(ERMCH1115_SEG_SET_PADS, 0);
+	send_command(ERMCH1115_ENTIRE_DISPLAY_ON, 0);
 	send_command(ERMCH1115_DISPLAY_NORMAL, 0);
-	
-	send_command(ERMCH1115_MULTIPLEX_MODE_SET, 0); 
-	send_command(ERMCH1115_MULTIPLEX_DATA_SET , 0); 
-	
-	send_command(ERMCH1115_COMMON_SCAN_DIR, 0); 
-	
-	send_command(ERMCH1115_OFFSET_MODE_SET, 0); 
-	send_command(ERMCH1115_OFFSET_DATA_SET, 0); 
-	
-	send_command(ERMCH1115_OSC_FREQ_MODE_SET, 0); 
-	send_command(ERMCH1115_OSC_FREQ_DATA_SET, 0); 
-	
-	send_command(ERMCH1115_PRECHARGE_MODE_SET, 0); 
-	send_command(ERMCH1115_PRECHARGE_DATA_SET, 0); 
-	
-	send_command(ERMCH1115_COM_LEVEL_MODE_SET, 0); 
-	send_command(ERMCH1115_COM_LEVEL_DATA_SET, 0); 
-	
-	send_command(ERMCH1115_SET_PUMP_REG, ERMCH115_SET_PUMP_SET); 
-	
-	send_command(ERMCH1115_DC_MODE_SET, 0); 
+
+	send_command(ERMCH1115_MULTIPLEX_MODE_SET, 0);
+	send_command(ERMCH1115_MULTIPLEX_DATA_SET, 0);
+
+	send_command(ERMCH1115_COMMON_SCAN_DIR, 0);
+
+	send_command(ERMCH1115_OFFSET_MODE_SET, 0);
+	send_command(ERMCH1115_OFFSET_DATA_SET, 0);
+
+	send_command(ERMCH1115_OSC_FREQ_MODE_SET, 0);
+	send_command(ERMCH1115_OSC_FREQ_DATA_SET, 0);
+
+	send_command(ERMCH1115_PRECHARGE_MODE_SET, 0);
+	send_command(ERMCH1115_PRECHARGE_DATA_SET, 0);
+
+	send_command(ERMCH1115_COM_LEVEL_MODE_SET, 0);
+	send_command(ERMCH1115_COM_LEVEL_DATA_SET, 0);
+
+	send_command(ERMCH1115_SET_PUMP_REG, ERMCH115_SET_PUMP_SET);
+
+	send_command(ERMCH1115_DC_MODE_SET, 0);
 	send_command(ERMCH1115_DC_ONOFF_SET, 0);
-	
+
 	send_command(ERMCH1115_DISPLAY_ON, 0);
-	_sleep= false;
-	ERMCH1115_CS_SetHigh;  
+	_sleep = false;
+	ERMCH1115_CS_SetHigh;
 	busy_wait_ms(ERMCH1115_INITDELAY);
 }
 
-// Desc: Sends a command to the display
-// Param1: the command
-// Param2: the values to change
-void ERMCH1115::send_command (uint8_t command,uint8_t value) 
+/*!
+	@brief Sends a command to the display
+	@param command Command to send
+	@param value the values to change
+	@note command and value  will be combined with OR
+*/
+void ERMCH1115::send_command(uint8_t command, uint8_t value)
 {
-  ERMCH1115_CD_SetLow; 
-  send_data(command | value);
-  ERMCH1115_CD_SetHigh;
+	ERMCH1115_CD_SetLow;
+	send_data(command | value);
+	ERMCH1115_CD_SetHigh;
 }
 
-// Desc: Sends data to the display via hardware SPI
-// Param1: Data byte
+/*!
+	 @brief Send data byte with SPI to ERMCH1115
+	 @param data the data byte to send
+*/
 void ERMCH1115::send_data(uint8_t data)
 {
 	spi_write_blocking(spiInterface, &data, 1);
-
 }
 
-// Desc: Resets OLED in a four wire setup called at start 
-void ERMCH1115::OLEDReset () 
+/*!
+	@brief Resets OLED in a four wire setup called at start
+*/
+void ERMCH1115::OLEDReset()
 {
-	ERMCH1115_RST_SetHigh; 
+	ERMCH1115_RST_SetHigh;
 	busy_wait_ms(ERMCH1115_RST_DELAY1);
 	ERMCH1115_RST_SetLow;
 	busy_wait_ms(ERMCH1115_RST_DELAY1);
-	ERMCH1115_RST_SetHigh ;
+	ERMCH1115_RST_SetHigh;
 	busy_wait_ms(ERMCH1115_RST_DELAY2);
 }
 
-// Desc: Turns On Display
-// Param1: bits,  1  on , 0 off
-void ERMCH1115::OLEDEnable (uint8_t bits) 
-{
- 
- ERMCH1115_CS_SetLow;
- if (bits)
- {
-	  _sleep= false;
-	  send_command(ERMCH1115_DISPLAY_ON, 0);
- }else
- {
-	 _sleep= true;
-	 send_command(ERMCH1115_DISPLAY_OFF, 0);
- }
- ERMCH1115_CS_SetHigh;
-
-}
-
-// Desc: OLEDIsOff
-// Returns: bool  value of _sleep if true OLED is off and in sleep mode, 500uA.
-bool ERMCH1115::OLEDIssleeping() { return  _sleep ;}
-
-// Desc: Sets up Horionztal Scroll
-// Param1: TimeInterval 0x00 -> 0x07 , 0x00 = 6 frames
-// Param2: Direction 0x26 right 0x27 left (A2 – A0)
-// Param3: Mode. Set Scroll Mode: (28H – 2BH)  0x28 = continuous
-void ERMCH1115::OLEDscrollSetup(uint8_t Timeinterval, uint8_t Direction, uint8_t mode) 
-{
-
- ERMCH1115_CS_SetLow;
-
- send_command(ERMCH1115_HORIZONTAL_A_SCROLL_SETUP, 0);
- send_command(ERMCH1115_HORIZONTAL_A_SCROLL_SET_SCOL, 0);
- send_command(ERMCH1115_HORIZONTAL_A_SCROLL_SET_ECOL, 0);
-
- send_command(Direction , 0);
- send_command(ERMCH1115_SPAGE_ADR_SET , 0);
- send_command(Timeinterval , 0);
- send_command(ERMCH1115_EPAGE_ADR_SET , 0);
-
- send_command(mode, 0);
-  
- ERMCH1115_CS_SetHigh;
- 
-}
-
-// Desc: Turns on Horizontal scroll 
-// Param1: bits 1  on , 0 off
-// Note OLEDscrollSetup must be called before it 
-void ERMCH1115::OLEDscroll(uint8_t bits) 
+/*!
+	@brief Turns On Display
+	@param bits  1  display on , 0 display off
+*/
+void ERMCH1115::OLEDEnable(uint8_t bits)
 {
 
 	ERMCH1115_CS_SetLow;
-	bits ? send_command(ERMCH1115_ACTIVATE_SCROLL , 0) :   send_command(ERMCH1115_DEACTIVATE_SCROLL, 0);
+	if (bits)
+	{
+		_sleep = false;
+		send_command(ERMCH1115_DISPLAY_ON, 0);
+	}
+	else
+	{
+		_sleep = true;
+		send_command(ERMCH1115_DISPLAY_OFF, 0);
+	}
 	ERMCH1115_CS_SetHigh;
-
 }
 
-// Desc: Adjusts contrast 
-// Param1: Contrast 0x00 to 0xFF , default 0x80
-// Note: Setup during init. 
+/*!
+	@brief getting for _sleep member . is OLED in sleep mode
+	@returns value of _sleep if true OLED is off and in sleep mode, 500uA.
+*/
+bool ERMCH1115::OLEDIssleeping() { return _sleep; }
+
+/*!
+	@brief Sets up Horizontal Scroll
+	@param Timeinterval 0x00 -> 0x07 , 0x00 = 6 frames
+	@param Direction 0x26 right 0x27 left (A2 – A0)
+	@param mode Set Scroll Mode: (28H – 2BH)  0x28 = continuous
+*/
+void ERMCH1115::OLEDscrollSetup(uint8_t Timeinterval, uint8_t Direction, uint8_t mode)
+{
+
+	ERMCH1115_CS_SetLow;
+
+	send_command(ERMCH1115_HORIZONTAL_A_SCROLL_SETUP, 0);
+	send_command(ERMCH1115_HORIZONTAL_A_SCROLL_SET_SCOL, 0);
+	send_command(ERMCH1115_HORIZONTAL_A_SCROLL_SET_ECOL, 0);
+
+	send_command(Direction, 0);
+	send_command(ERMCH1115_SPAGE_ADR_SET, 0);
+	send_command(Timeinterval, 0);
+	send_command(ERMCH1115_EPAGE_ADR_SET, 0);
+
+	send_command(mode, 0);
+
+	ERMCH1115_CS_SetHigh;
+}
+
+/*!
+	@brief Turns on Horizontal scroll
+	@param bits 1  Horizontal scroll on , 0 Horizontal scroll off
+	@note OLEDscrollSetup must be called before it
+*/
+void ERMCH1115::OLEDscroll(uint8_t bits)
+{
+
+	ERMCH1115_CS_SetLow;
+	bits ? send_command(ERMCH1115_ACTIVATE_SCROLL, 0) : send_command(ERMCH1115_DEACTIVATE_SCROLL, 0);
+	ERMCH1115_CS_SetHigh;
+}
+
+/*!
+	@brief Adjusts contrast
+	@param contrast 0x00 to 0xFF , default 0x80
+*/
 void ERMCH1115::OLEDContrast(uint8_t contrast)
 {
 
 	ERMCH1115_CS_SetLow;
-	send_command(ERMCH115_CONTRAST_CONTROL  ,0); 
-	send_command(contrast, 0);  
+	send_command(ERMCH115_CONTRAST_CONTROL, 0);
+	send_command(contrast, 0);
 	ERMCH1115_CS_SetHigh;
-
 }
 
-// Desc: Rotates the display vertically 
-// Param1: bits 1  on , 0 off
-void ERMCH1115::OLEDFlip(uint8_t  bits) 
+/*!
+	@brief Rotates the display vertically, A 180 degree 'flip'
+	@param bits 1  on , 0 off
+*/
+void ERMCH1115::OLEDFlip(uint8_t bits)
 {
 
-  ERMCH1115_CS_SetLow;
-  bits ? send_command(ERMCH1115_COMMON_SCAN_DIR, 0x08):send_command(ERMCH1115_COMMON_SCAN_DIR, 0x00)  ; // C0H - C8H 
-  bits ? send_command(ERMCH1115_SEG_SET_REMAP, 0x01):   send_command(ERMCH1115_SEG_SET_REMAP, 0x00); //(A0H - A1H)
-  ERMCH1115_CS_SetHigh;
-
+	ERMCH1115_CS_SetLow;
+	bits ? send_command(ERMCH1115_COMMON_SCAN_DIR, 0x08) : send_command(ERMCH1115_COMMON_SCAN_DIR, 0x00); // C0H - C8H
+	bits ? send_command(ERMCH1115_SEG_SET_REMAP, 0x01) : send_command(ERMCH1115_SEG_SET_REMAP, 0x00);	  //(A0H - A1H)
+	ERMCH1115_CS_SetHigh;
 }
 
-// Desc: Turns on fade effect 
-// Param1: bits  
-// bits = 0x00 to stop  
-// bits values: (see datasheet breatheffect P25 for more details)
-// 		ON/OFF * * A4 A3 A2 A1 A0
-//      When ON/OFF =”H”, Breathing Light ON.
-//	 	Breathing Display Effect Maximum Brightness Adjust Set: (A4 – A3)
-//		Breathing Display Effect Time Interval Set: (A2 – A0)
-// 		Default on is 0x81
-void ERMCH1115::OLEDfadeEffect(uint8_t bits) 
+/*!
+	@brief Turns on fade effect
+	@param bits 0x00 to stop
+	@note bits values: (see datasheet breatheffect P25 for more details)
+		-# ON/OFF * * A4 A3 A2 A1 A0
+		-# When ON/OFF =”H”, Breathing Light ON.
+		-# Breathing Display Effect Maximum Brightness Adjust Set: (A4 – A3)
+		-# Breathing Display Effect Time Interval Set: (A2 – A0)
+		-# Default on is 0x81
+*/
+void ERMCH1115::OLEDfadeEffect(uint8_t bits)
 {
 
- ERMCH1115_CS_SetLow;
- send_command(ERMCCH1115_BREATHEFFECT_SET,0);
- send_command(bits,0);
- ERMCH1115_CS_SetHigh;
-
+	ERMCH1115_CS_SetLow;
+	send_command(ERMCCH1115_BREATHEFFECT_SET, 0);
+	send_command(bits, 0);
+	ERMCH1115_CS_SetHigh;
 }
 
-// Call when powering down
+/*!
+	@brief Power down function
+	@details Disables screen and sets all independent GPIO low.
+		call when powering down before end of operations
+*/
 void ERMCH1115::OLEDPowerDown(void)
 {
 	OLEDEnable(0);
-	ERMCH1115_CD_SetLow ;
-	ERMCH1115_RST_SetLow ;
+	ERMCH1115_CD_SetLow;
+	ERMCH1115_RST_SetLow;
 	ERMCH1115_CS_SetLow;
 	ERMCH1115_SCLK_SetLow;
-	ERMCH1115_SDA_SetLow ;
-	_sleep= true;
+	ERMCH1115_SDA_SetLow;
+	_sleep = true;
 }
 
-// Desc: invert the display
-// Param1: bits, 1 invert , 0 normal
-void ERMCH1115::OLEDInvert(uint8_t bits) 
+/*!
+	@brief invert the display
+	@param bits 1 invert , 0 normal
+*/
+void ERMCH1115::OLEDInvert(uint8_t bits)
 {
- 
- ERMCH1115_CS_SetLow;
- bits ? send_command(ERMCH1115_DISPLAY_INVERT, 0) :   send_command(ERMCH1115_DISPLAY_NORMAL, 0);
- ERMCH1115_CS_SetHigh;
 
+	ERMCH1115_CS_SetLow;
+	bits ? send_command(ERMCH1115_DISPLAY_INVERT, 0) : send_command(ERMCH1115_DISPLAY_NORMAL, 0);
+	ERMCH1115_CS_SetHigh;
 }
 
-// Desc: Fill the screen NOT the buffer with a datapattern 
-// Param1: datapattern can be set to zero to clear screen (not buffer) range 0x00 to 0ff
-// Param2: optional delay in milliseconds can be set to zero normally.
-void ERMCH1115::OLEDFillScreen(uint8_t dataPattern, uint8_t delay) 
+/*!
+	@brief Fill the screen NOT the buffer with a datapattern
+	@param dataPattern can be set to zero to clear screen (not buffer) range 0x00 to 0ff
+	@param delay A delay in milliseconds can be set to zero normally.
+*/
+void ERMCH1115::OLEDFillScreen(uint8_t dataPattern, uint8_t delay)
 {
-	for (uint8_t row = 0; row < OLED_PAGE_NUM; row++) 
+	for (uint8_t row = 0; row < _OLED_PAGE_NUM; row++)
 	{
-		OLEDFillPage(row,dataPattern,delay);
+		OLEDFillPage(row, dataPattern, delay);
 	}
 }
 
-// Desc: Fill the chosen page(1-8)  with a datapattern 
-// Param1: datapattern can be set to 0 to FF (not buffer)
-// Param2: optional delay in milliseconds can be set to zero normally.
-void ERMCH1115::OLEDFillPage(uint8_t page_num, uint8_t dataPattern,uint8_t mydelay) 
+/*!
+	 @brief Fill the chosen page(0-7)  with a datapattern
+	 @param pageNum  page 0-7 divides 64 pixel screen into 8 pages or blocks  64/8
+	 @param dataPattern can be set to 0 to FF (not buffer)
+	 @param mydelay optional delay in milliseconds can be set to zero normally.
+*/
+void ERMCH1115::OLEDFillPage(uint8_t pageNum, uint8_t dataPattern, uint8_t mydelay)
 {
+	if (pageNum >= 8)
+	{
+		printf("Error OLEDFillPage 1 :page number must be between 0 and 7 \n");
+		return;
+	}
 
 	ERMCH1115_CS_SetLow;
-	send_command(ERMCH1115_SET_COLADD_LSB, 0); 
+	send_command(ERMCH1115_SET_COLADD_LSB, 0);
 	send_command(ERMCH1115_SET_COLADD_MSB, 0);
-	send_command(ERMCH1115_SET_PAGEADD, page_num); 
+	send_command(ERMCH1115_SET_PAGEADD, pageNum);
 	ERMCH1115_CS_SetHigh;
 	busy_wait_us(2);
 	ERMCH1115_CS_SetLow;
-	uint8_t numofbytes = OLED_WIDTH; // 128 bytes
-	for (uint8_t i = 0; i < numofbytes; i++) 
+	uint8_t numofbytes = _OLED_WIDTH;
+	for (uint8_t i = 0; i < numofbytes; i++)
 	{
-	  send_data(dataPattern);
-	  busy_wait_ms(mydelay);
+		send_data(dataPattern);
+		busy_wait_ms(mydelay);
 	}
 	ERMCH1115_CS_SetHigh;
-
 }
 
-//Desc: Draw a bitmap to the screen
-//Param1: x offset 0-128
-//Param2: y offset 0-64
-//Param3: width 0-128
-//Param4 height 0-64
-//Param5 the bitmap
-void ERMCH1115::OLEDBitmap(int16_t x, int16_t y, uint8_t w, uint8_t h, const uint8_t* data) 
+/*!
+	 @brief Draw a bitmap  to the screen
+	 @param x offset 0-128
+	 @param y offset 0-64
+	 @param w width 0-128
+	 @param h height 0-64
+	 @param data  pointer to the bitmap
+	 @note data is const. writes direct to screen , no buffer.
+*/
+void ERMCH1115::OLEDBitmap(int16_t x, int16_t y, uint8_t w, uint8_t h, const uint8_t *data)
 {
- ERMCH1115_CS_SetLow;
+	ERMCH1115_CS_SetLow;
 
-  uint8_t tx, ty; 
-  uint16_t offset = 0; 
-  uint8_t column = (x < 0) ? 0 : x;
-  uint8_t page = (y < 0) ? 0 : y >>3;
+	uint8_t tx, ty;
+	uint16_t offset = 0;
+	uint8_t column = (x < 0) ? 0 : x;
+	uint8_t page = (y < 0) ? 0 : y >> 3;
 
-  for (ty = 0; ty < h; ty = ty + 8) 
-  {
-		if (y + ty < 0 || y + ty >= OLED_HEIGHT) {continue;}
-		send_command(ERMCH1115_SET_COLADD_LSB, (column & 0x0F)); 
-		send_command(ERMCH1115_SET_COLADD_MSB, (column & 0xF0) >> 4);
-		send_command(ERMCH1115_SET_PAGEADD, page++); 
-
-		for (tx = 0; tx < w; tx++) 
+	for (ty = 0; ty < h; ty = ty + 8)
+	{
+		if (y + ty < 0 || y + ty >= _OLED_HEIGHT)
 		{
-			  if (x + tx < 0 || x + tx >= OLED_WIDTH) {continue;}
-			  offset = (w * (ty >> 3)) + tx; 
-			  send_data(data[offset]);
+			continue;
 		}
-  }
-ERMCH1115_CS_SetHigh;
+		send_command(ERMCH1115_SET_COLADD_LSB, (column & 0x0F));
+		send_command(ERMCH1115_SET_COLADD_MSB, (column & 0xF0) >> 4);
+		send_command(ERMCH1115_SET_PAGEADD, page++);
+
+		for (tx = 0; tx < w; tx++)
+		{
+			if (x + tx < 0 || x + tx >= _OLED_WIDTH)
+			{
+				continue;
+			}
+			offset = (w * (ty >> 3)) + tx;
+			send_data(data[offset]);
+		}
+	}
+	ERMCH1115_CS_SetHigh;
 }
 
-//Desc: updates the buffer i.e. writes it to the screen
-void ERMCH1115::OLEDupdate() 
+/*!
+	 @brief updates the OLED i.e. writes  buffer to the screen
+*/
+void ERMCH1115::OLEDupdate()
 {
-  uint8_t x = 0; uint8_t y = 0; uint8_t w = this->bufferWidth; uint8_t h = this->bufferHeight;
-  OLEDBuffer( x,  y,  w,  h, (uint8_t*) this->OLEDbuffer);
+	uint8_t x = 0;
+	uint8_t y = 0;
+	uint8_t w = this->_bufferWidth;
+	uint8_t h = this->_bufferHeight;
+	OLEDBufferScreen(x, y, w, h, (uint8_t *)this->_OLEDbuffer);
 }
 
-//Desc: clears the buffer i.e. does NOT write to the screen
+/*!
+	 @brief clears the active shared buffer i.e. does NOT write to the screen
+*/
 void ERMCH1115::OLEDclearBuffer()
 {
-	memset( this->OLEDbuffer, 0x00, (this->bufferWidth * (this->bufferHeight /8))  ); 
+	memset(this->_OLEDbuffer, 0x00, (this->_bufferWidth * (this->_bufferHeight / 8)));
 }
 
-//Desc: Draw a bitmap to the screen
-//Param1: x offset 0-128
-//Param2: y offset 0-64
-//Param3: width 0-128
-//Param4 height 0-64
-//Param5 the bitmap
-//Note: Called by OLEDupdate
-void ERMCH1115::OLEDBuffer(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t* data) 
+/*!
+	 @brief Draw buffer data to the screen
+	 @param x offset 0-128
+	 @param y offset 0-64
+	 @param w width 0-128
+	 @param h height 0-64
+	 @param data pointer to the data array
+	 @note Called by OLEDupdate, used internally mostly
+*/
+void ERMCH1115::OLEDBufferScreen(int16_t x, int16_t y, uint8_t w, uint8_t h, uint8_t *data)
 {
- ERMCH1115_CS_SetLow;
+	ERMCH1115_CS_SetLow;
 
-  uint8_t tx, ty; 
-  uint16_t offset = 0; 
-  uint8_t column = (x < 0) ? 0 : x;
-  uint8_t page = (y < 0) ? 0 : y/8;
+	uint8_t tx, ty;
+	uint16_t offset = 0;
+	uint8_t column = (x < 0) ? 0 : x;
+	uint8_t page = (y < 0) ? 0 : y / 8;
 
-  for (ty = 0; ty < h; ty = ty + 8) 
-  {
-	if (y + ty < 0 || y + ty >= OLED_HEIGHT) {continue;}
-	
-	send_command(ERMCH1115_SET_COLADD_LSB, (column & 0x0F)); 
-	send_command(ERMCH1115_SET_COLADD_MSB, (column & 0XF0) >> 4); 
-	send_command(ERMCH1115_SET_PAGEADD, page++); 
- 
-	for (tx = 0; tx < w; tx++) 
+	for (ty = 0; ty < h; ty = ty + 8)
 	{
-		  if (x + tx < 0 || x + tx >= OLED_WIDTH) {continue;}
-		  offset = (w * (ty /8)) + tx; 
-		  send_data(data[offset++]);
+		if (y + ty < 0 || y + ty >= _OLED_HEIGHT)
+		{
+			continue;
+		}
+
+		send_command(ERMCH1115_SET_COLADD_LSB, (column & 0x0F));
+		send_command(ERMCH1115_SET_COLADD_MSB, (column & 0XF0) >> 4);
+		send_command(ERMCH1115_SET_PAGEADD, page++);
+
+		for (tx = 0; tx < w; tx++)
+		{
+			if (x + tx < 0 || x + tx >= _OLED_WIDTH)
+			{
+				continue;
+			}
+			offset = (w * (ty / 8)) + tx;
+			send_data(data[offset++]);
+		}
 	}
-  }
-ERMCH1115_CS_SetHigh;
-
+	ERMCH1115_CS_SetHigh;
 }
 
-// Desc: Draws a Pixel to the screen overides the  graphics library
-// Passed x and y co-ords and colour of pixel.
-void ERMCH1115::drawPixel(int16_t x, int16_t y, uint8_t colour) 
+/*!
+	@brief Draws a Pixel to the screen, overides the  graphics library
+	@param x x co-ord of pixel
+	@param y y co-ord of pixel
+	@param colour colour of  pixel
+	@note virtual function overides the  graphics library
+*/
+void ERMCH1115::drawPixel(int16_t x, int16_t y, uint8_t colour)
 {
-  if ((x < 0) || (x >= this->bufferWidth) || (y < 0) || (y >= this->bufferHeight)) {
-	return;
-  }
-	  uint16_t tc = (bufferWidth * (y /8)) + x; 
-	  switch (colour)
-	  {
-		case FOREGROUND:  this->OLEDbuffer[tc] |= (1 << (y & 7)); break;
-		case BACKGROUND:  this->OLEDbuffer[tc] &= ~(1 << (y & 7)); break;
-		case INVERSE: this->OLEDbuffer[tc] ^= (1 << (y & 7)); break;
-	  }
-
+	if ((x < 0) || (x >= this->_bufferWidth) || (y < 0) || (y >= this->_bufferHeight))
+	{
+		return;
+	}
+	uint16_t tc = (_bufferWidth * (y / 8)) + x;
+	switch (colour)
+	{
+	case WHITE:
+		this->_OLEDbuffer[tc] |= (1 << (y & 7));
+		break;
+	case BLACK:
+		this->_OLEDbuffer[tc] &= ~(1 << (y & 7));
+		break;
+	case INVERSE:
+		this->_OLEDbuffer[tc] ^= (1 << (y & 7));
+		break;
+	}
 }
+
+/*!
+	@brief sets the buffer pointer to the users screen data buffer
+	@param width width of buffer in pixels
+	@param height height of buffer in pixels
+	@param pBuffer the buffer array which decays to pointer
+	@param sizeOfBuffer size of buffer
+	@return Will return:
+		-# 0. Success
+		-# 2. Buffer size calculations are incorrect BufferSize = w * (h/8),
+		-# 3. Not a valid pointer object.
+*/
+uint8_t ERMCH1115::OLEDSetBufferPtr(uint8_t width, uint8_t height, uint8_t *pBuffer, uint16_t sizeOfBuffer)
+{
+	if (sizeOfBuffer != width * (height / 8))
+	{
+		printf("ERMCH1115::::OLEDSetBufferPtr Error 2: buffer size does not equal: w * (h/8))\r\n");
+		return 2;
+	}
+	_OLEDbuffer = pBuffer;
+	if (_OLEDbuffer == nullptr)
+	{
+		printf("ERMCH1115::::OLEDSetBufferPtr Error 3: Problem assigning buffer pointer\r\n");
+		return 3;
+	}
+	return 0;
+}
+
+/*!
+	@brief getter for Library version number
+	@return the version number 101 is 1.0.1
+*/
+uint16_t ERMCH1115::GetLibVerNum(void) { return _OLEDLibVerNum; }
 
 //************** EOF *************************
