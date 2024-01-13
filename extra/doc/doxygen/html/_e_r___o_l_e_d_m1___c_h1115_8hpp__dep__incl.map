@@ -1,7 +1,0 @@
-<map id="/home/gavin/Documents/Tech/pico_projects/ch1115/include/ch1115/ER_OLEDM1_CH1115.hpp" name="/home/gavin/Documents/Tech/pico_projects/ch1115/include/ch1115/ER_OLEDM1_CH1115.hpp">
-<area shape="rect" id="node1" title="ER_OLEDM1 OLED driven by CH1115 controller header file, Main file For OLED and SPI controller functio..." alt="" coords="399,5,605,76"/>
-<area shape="rect" id="node2" href="$_e_r___o_l_e_d_m1___c_h1115___b_i_t_m_a_p_2main_8cpp.html" title="Test file for ER_OLEDM1_CH1115 library,showing how to use bitmap." alt="" coords="5,124,236,195"/>
-<area shape="rect" id="node3" href="$_e_r___o_l_e_d_m1___c_h1115___f_p_s___f_u_n_c_t_i_o_n_s_2main_8cpp.html" title="Test file for ER_OLEDM1_CH1115 library,library, showing use of various functions + FPS test." alt="" coords="260,124,491,195"/>
-<area shape="rect" id="node4" href="$_e_r___o_l_e_d_m1___c_h1115___h_e_l_l_o_2main_8cpp.html" title="Test file for ER_OLEDM1_CH1115_PICO library, showing &quot;hello world&quot;." alt="" coords="515,124,745,195"/>
-<area shape="rect" id="node5" href="$_e_r___o_l_e_d_m1___c_h1115___t_e_x_t___g_r_a_p_h_i_c_s_2main_8cpp.html" title="Test file for ER_OLEDM1_CH1115_PICO library, testing text, fonts &amp; graphics." alt="" coords="769,124,1000,195"/>
-</map>
