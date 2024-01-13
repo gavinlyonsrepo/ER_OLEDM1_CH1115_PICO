@@ -80,7 +80,7 @@ Spi0 is used in example files but can be changed by passing a different SPI chan
 ### Fonts
 
 There are 10 fonts packaged with library. Fonts can be easily added or removed by user.
-All the Font data is in file SSD1306_OLED_font.cpp and SSD1306_OLED_font.hpp
+All the Font data is in file CH1115_OLED_font.cpp and CH1115_OLED_font.hpp
 
 Font data table: 
 
@@ -111,15 +111,15 @@ These methods return an error code in event of an error such as, ASCII character
 
 To remove an unwanted font from project simply comment out or delete.
 
-1. The Font data in SSD1306_OLED_font.cpp file
-2. The pointer to font at bottom of SSD1306_OLED_font.cpp file
-3. The associated extern pointer declaration in the SSD1306_OLED_font.hpp file
+1. The Font data in CH1115_OLED_font.cpp file
+2. The pointer to font at bottom of CH1115_OLED_font.cpp file
+3. The associated extern pointer declaration in the CH1115_OLED_font.hpp file
 
 **Adding a new font**
 
-1. Add the Font data in SSD1306_OLED_font.cpp file
-2. Add a pointer to font at bottom of SSD1306_OLED_font.cpp file
-3. Add an associated extern pointer declaration in the SSD1306_OLED_font.hpp file
+1. Add the Font data in CH1115_OLED_font.cpp file
+2. Add a pointer to font at bottom of CH1115_OLED_font.cpp file
+3. Add an associated extern pointer declaration in the CH1115_OLED_font.hpp file
 
 The new ASCII font must have following font structure.
 First 4 bytes are control bytes followed by vertically addressed font data.
