@@ -25,7 +25,7 @@
 * Description : 
 
 1. Raspberry pi PICO RP2040 library.      
-2. Invert colour, vertical rotate, sleep, fade effect, horizontal scroll and contrast control  functions supported.
+2. Invert colour, vertical flip command, rotate  screen,  sleep, fade effect, horizontal scroll and contrast control  functions supported.
 3. 10 ASCII fonts included.
 4. Graphics support included.
 5. Buffer Mode
@@ -74,7 +74,7 @@ an API document  can be generated. A Doxyfile is in "doc" sub folder in reposito
 
 ### SPI
 
-Hardware SPI. The hardware SPI speed is set at 8MHz you can increase this if necessary by changing OLEDbegin method arguments.
+Hardware SPI. The hardware SPI speed is set at 8MHz you can increase this if necessary by changing OLEDSPIsetup method arguments.
 Spi0 is used in example files but can be changed by passing a different SPI channel. 
 
 ### Fonts
@@ -145,10 +145,28 @@ There is a monochrome font maker there at [URL](http://rinkydinkelectronics.com/
 
 ### Bitmaps
 
-OLEDBitmap function will return an error if : The Bitmap is completely off screen , Invalid Bitmap pointer object, bitmap bigger than screen , bitmap bigger/smaller than provided width and height calculation ( This helps prevents buffer overflow). A horizontal addressed Bitmap's width MUST be divisible by 8. eg, for a bitmap with width=88 and height=48. Bitmap excepted size = (88/8) * 48 = 528 bytes.
+### Bitmaps
+
+There is a few different ways of displaying bitmaps, 
+
+| Num | Method |  Data addressing | Note |
+| ------ | ------  | ------ |  ------ |  
+| 1 | OLEDBitmap() |  Vertical |  Writes directly to screen , no buffer used. | 
+| 2 | OLEDBufferScreen() |  Vertical  | For internal use mostly | 
+| 3 | drawBitmap() |  Vertical | default, setDrawBitmapAddr(true) | 
+| 4 | drawBitmap() |  Horizontal | setDrawBitmapAddr(false) |
+
+The drawBitmap method will return an error if : The Bitmap is completely off screen , 
+Invalid Bitmap pointer object, bitmap bigger than screen , bitmap bigger/smaller than provided width and height calculation
+( This helps prevents buffer overflow).
+A vertical addressed Bitmap's height must be divisible by 8. eg, for a bitmap with width=128 and height=64.
+Bitmap excepted size = 128 * (64/8) = 1024 bytes.
+A horizontal addressed Bitmap's width must be divisible by 8. eg, for a bitmap with width=88 and height=48.
+Bitmap excepted size = (88/8) * 48 = 528 bytes.
 
 Bitmaps can be turned to data [here at link]( https://javl.github.io/image2cpp/) 
-See example file "_BITMAP" for more details.
+See example file "BITMAP" for more details.
+
 
 ### User adjustments
 

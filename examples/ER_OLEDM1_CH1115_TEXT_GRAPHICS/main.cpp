@@ -364,7 +364,7 @@ void Test713(void)
 	TestReset();
 	printf("OLED Test 713-b writeText new line \r\n");
 	char TestStr1[] = "123456789ABCDEFGHIJ";
-	myOLED.writeCharString(0, 0, TestStr1);
+	myOLED.writeCharString(20, 0, TestStr1);
 	TestReset();
 }
 

@@ -457,6 +457,24 @@ void ERMCH1115::drawPixel(int16_t x, int16_t y, uint8_t colour)
 	{
 		return;
 	}
+	int16_t temp;
+	uint8_t RotateMode = getRotation();
+	switch (RotateMode) {
+	case 1:
+		temp = x;
+		x = WIDTH - 1 - y;
+		y = temp;
+	break;
+	case 2:
+		x = WIDTH - 1 - x;
+		y = HEIGHT - 1 - y;
+	break;
+	case 3:
+		temp = x;
+		x = y;
+		y = HEIGHT - 1 - temp;
+	break;
+	}
 	uint16_t tc = (_bufferWidth * (y / 8)) + x;
 	switch (colour)
 	{

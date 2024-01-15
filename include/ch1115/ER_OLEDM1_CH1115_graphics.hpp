@@ -19,6 +19,15 @@
 		b = t;               \
 	}
 
+/*! OLED rotate modes in degrees*/
+enum  OLED_rotate_e : uint8_t
+{
+	OLED_Degrees_0 = 0, /**< No rotation 0 degrees*/
+	OLED_Degrees_90,    /**< Rotation 90 degrees*/
+	OLED_Degrees_180,   /**< Rotation 180 degrees*/
+	OLED_Degrees_270   /**< Rotation 270 degrees*/
+};
+
 /*! @brief Font class to hold font data object  */
 class ERMCH1115_OLEDFonts
 {
@@ -83,8 +92,8 @@ public:
 	void setCursor(int16_t x, int16_t y);
 	void setTextWrap(bool w);
 
-	void setRotation(uint8_t r);
-	uint8_t getRotation(void) const;
+	void setRotation(OLED_rotate_e );
+	OLED_rotate_e getRotation(void);
 
 	int16_t height(void) const;
 	int16_t width(void) const;
@@ -100,4 +109,6 @@ protected:
 	uint8_t _rotation;	  /**< Holds current rotation 0-3 */
 	bool _textwrap;		  /**< If set, 'wrap' text at right edge of display*/
 	bool _drawBitmapAddr; /**< data addressing mode for method drawBitmap, True-vertical , false-horizontal */
+	
+	OLED_rotate_e OLED_rotate = OLED_Degrees_0; /**< Enum to hold rotation */
 };

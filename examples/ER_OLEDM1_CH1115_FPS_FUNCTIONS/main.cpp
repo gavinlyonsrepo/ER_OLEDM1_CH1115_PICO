@@ -6,10 +6,11 @@
 	@test
 		-# Test 501 Enable and disable Screen (Sleep mode)
 		-# Test 502 Invert screen color
-		-# Test 503 FLip screen
+		-# Test 503 Flip screen with OLED command
 		-# Test 504 Contrast screen
 		-# Test 505 Scroll Screen
 		-# Test 506 Fade breath effect
+		-# Test 507 Rotate Screen by rotating buffer
 		-# Test 601 Frame rate per second test. FPS.
 */
 
@@ -23,7 +24,7 @@
 #define myOLEDwidth 128
 #define myOLEDheight 64
 #define myScreenSize (myOLEDwidth * (myOLEDheight / 8)) // eg 1024 bytes = 128 * 64/8
-uint8_t screenBuffer[myScreenSize];											// Define a buffer to cover whole screen  128 * 64/8
+uint8_t screenBuffer[myScreenSize];	// Define a buffer to cover whole screen  128 * 64/8
 
 // GPIO
 const uint mosi_pin = 19;
@@ -41,6 +42,7 @@ ERMCH1115 myOLED(myOLEDwidth, myOLEDheight);
 
 // === Function prototypes ===
 void DisplayMiscTests(void);
+void Test507(void);
 void DisplayFPS(void);
 void SetupTest(void);
 void EndTest(void);
@@ -50,6 +52,7 @@ int main(void)
 {
 	SetupTest();
 	DisplayMiscTests();
+	Test507();
 	DisplayFPS();
 	EndTest();
 }
@@ -112,7 +115,7 @@ void DisplayMiscTests()
 	// ** Test 503 OLED flip **
 	myOLED.OLEDclearBuffer();
 	myOLED.setCursor(5, 5);
-	myOLED.print("Flip test 503");
+	myOLED.print("Flip LCD built-in     command test 503");
 	myOLED.OLEDupdate();
 	busy_wait_ms(4000);
 	myOLED.OLEDFlip(1);
@@ -178,6 +181,40 @@ void DisplayMiscTests()
 
 	myOLED.OLEDclearBuffer();
 	myOLED.OLEDupdate();
+}
+
+void Test507(void)
+{
+	myOLED.OLEDclearBuffer();
+	printf("OLED rotate buffer test 507\r\n");
+	myOLED.setRotation(OLED_Degrees_90);
+	myOLED.OLEDclearBuffer();
+	myOLED.setCursor(5,5 );
+	myOLED.print("r 90");
+	myOLED.OLEDupdate();
+	busy_wait_ms(3000);
+	
+	myOLED.setRotation(OLED_Degrees_180);
+	myOLED.OLEDclearBuffer();
+	myOLED.setCursor(5,5 );
+	myOLED.print("r 180");
+	myOLED.OLEDupdate();
+	busy_wait_ms(3000);
+	
+	myOLED.setRotation(OLED_Degrees_270);
+	myOLED.OLEDclearBuffer();
+	myOLED.setCursor(5,5 );
+	myOLED.print("r 270");
+	myOLED.OLEDupdate();
+	busy_wait_ms(3000);
+	
+	myOLED.setRotation(OLED_Degrees_0); //default normal 
+	myOLED.OLEDclearBuffer();
+	myOLED.setCursor(5,5 );
+	myOLED.print("r 0");
+	myOLED.OLEDupdate();
+	busy_wait_ms(3000);
+	myOLED.OLEDclearBuffer();
 }
 
 // Test 5 FPS frames per second test

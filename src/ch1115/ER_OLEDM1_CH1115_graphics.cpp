@@ -631,21 +631,17 @@ void ERMCH1115_graphics::setTextWrap(bool w)
 
 /*!
    @brief Gets the _rotation of the display
-   @return _rotation value 0-3
+   @return rotation enum value 0-3
 */
-uint8_t ERMCH1115_graphics::getRotation(void) const
-{
-	return _rotation;
-}
+OLED_rotate_e ERMCH1115_graphics::getRotation(void){return OLED_rotate;}
 
 /*!
-   @brief Sets the _rotation of the display
-   @param x _rotation value 0-3
+   @brief Sets the rotation of the display
+   @param CurrentRotation rotation enum value 0-3
 */
-void ERMCH1115_graphics::setRotation(uint8_t x)
+void ERMCH1115_graphics::setRotation(OLED_rotate_e CurrentRotation)
 {
-	_rotation = (x & 3);
-	switch (_rotation)
+	switch (CurrentRotation)
 	{
 	case 0:
 	case 2:
@@ -658,6 +654,7 @@ void ERMCH1115_graphics::setRotation(uint8_t x)
 		_height = WIDTH;
 		break;
 	}
+	OLED_rotate = CurrentRotation;
 }
 
 /*!
@@ -802,6 +799,7 @@ uint8_t ERMCH1115_graphics::writeCharString(int16_t x, int16_t y, char *pText)
 		if ((x + (count * _Font_X_Size)) > _width - _Font_X_Size)
 		{
 			y = y + _Font_Y_Size;
+			x = 0;
 			count = 0;
 		}
 		if (writeChar(x + (count * (_Font_X_Size)), y, *pText++) != 0)
