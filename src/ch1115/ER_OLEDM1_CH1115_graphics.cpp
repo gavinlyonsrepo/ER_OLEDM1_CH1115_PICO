@@ -524,13 +524,13 @@ uint8_t ERMCH1115_graphics::drawBitmap(int16_t x, int16_t y,
 
 	// User error checks
 	// 1. Completely out of bounds?
-	if (x > WIDTH || y > HEIGHT)
+	if (x > _width || y > _height)
 	{
 		printf("Error drawBitmap 2 : Bitmap co-ord out of bounds, check x and y\n");
 		return 2;
 	}
 	// 2. bitmap weight and height
-	if (w > WIDTH || h > HEIGHT)
+	if (w > _width || h > _height)
 	{
 		printf("Error drawBitmap 3 : Bitmap is larger than screen, check w and h\n");
 		return 3;
