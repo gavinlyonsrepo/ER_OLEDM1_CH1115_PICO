@@ -106,7 +106,6 @@ protected:
 	int16_t _cursor_x;	  /**< Current X co-ord cursor position */
 	int16_t _cursor_y;	  /**< Current Y co-ord cursor position */
 
-	uint8_t _rotation;	  /**< Holds current rotation 0-3 */
 	bool _textwrap;		  /**< If set, 'wrap' text at right edge of display*/
 	bool _drawBitmapAddr; /**< data addressing mode for method drawBitmap, True-vertical , false-horizontal */
 	

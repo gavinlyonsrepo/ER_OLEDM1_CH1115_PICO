@@ -145,8 +145,6 @@ There is a monochrome font maker there at [URL](http://rinkydinkelectronics.com/
 
 ### Bitmaps
 
-### Bitmaps
-
 There is a few different ways of displaying bitmaps, 
 
 | Num | Method |  Data addressing | Note |

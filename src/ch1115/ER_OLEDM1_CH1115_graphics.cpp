@@ -6,7 +6,7 @@
 */
 
 #include "../include/ch1115/ER_OLEDM1_CH1115_graphics.hpp"
-#include "../include/ch1115/ER_OLEDM1_CH1115.hpp"
+
 
 // === Font class implementation ===
 
@@ -67,7 +67,6 @@ ERMCH1115_graphics::ERMCH1115_graphics(int16_t w, int16_t h) : WIDTH(w), HEIGHT(
 {
 	_width = WIDTH;
 	_height = HEIGHT;
-	_rotation = 0;
 	_cursor_y = 0;
 	_cursor_x = 0;
 	_textwrap = true;
@@ -718,7 +717,7 @@ uint8_t ERMCH1115_graphics::writeChar(int16_t x, int16_t y, char value)
 	// 2. Check for character out of font range bounds
 	if (value < _FontOffset || value >= (_FontOffset + _FontNumChars + 1))
 	{
-		printf("ERMCH1115_graphics::writeChar Error 3: Character out of Font bounds  %u : %u<->%u \r\n", value, _FontOffset, _FontOffset + _FontNumChars + 1);
+		printf("ERMCH1115_graphics::writeChar Error 3: Character out of Font bounds  %u : %u<->%u \r\n", value, _FontOffset, _FontOffset + _FontNumChars);
 		return 3;
 	}
 	if (_Font_Y_Size % 8 == 0) // Is the font height divisible by 8

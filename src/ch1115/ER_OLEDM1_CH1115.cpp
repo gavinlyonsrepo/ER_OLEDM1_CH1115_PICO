@@ -19,8 +19,6 @@ ERMCH1115::ERMCH1115(int16_t oledwidth, int16_t oledheight) : ERMCH1115_graphics
 	_OLED_HEIGHT = oledheight;
 	_OLED_WIDTH = oledwidth;
 	_OLED_PAGE_NUM = (_OLED_HEIGHT / 8);
-	_bufferWidth = _OLED_WIDTH;
-	_bufferHeight = _OLED_HEIGHT;
 }
 
 /*!
@@ -389,9 +387,9 @@ void ERMCH1115::OLEDupdate()
 {
 	uint8_t x = 0;
 	uint8_t y = 0;
-	uint8_t w = this->_bufferWidth;
-	uint8_t h = this->_bufferHeight;
-	OLEDBufferScreen(x, y, w, h, (uint8_t *)this->_OLEDbuffer);
+	uint8_t w = this->_OLED_WIDTH;
+	uint8_t h = this->_OLED_HEIGHT;
+	OLEDBufferScreen(x, y, w, h, this->_OLEDbuffer);
 }
 
 /*!
@@ -399,7 +397,7 @@ void ERMCH1115::OLEDupdate()
 */
 void ERMCH1115::OLEDclearBuffer()
 {
-	memset(this->_OLEDbuffer, 0x00, (this->_bufferWidth * (this->_bufferHeight / 8)));
+	memset(this->_OLEDbuffer, 0x00, (this->_OLED_WIDTH * (this->_OLED_HEIGHT / 8)));
 }
 
 /*!
@@ -453,7 +451,7 @@ void ERMCH1115::OLEDBufferScreen(int16_t x, int16_t y, uint8_t w, uint8_t h, uin
 */
 void ERMCH1115::drawPixel(int16_t x, int16_t y, uint8_t colour)
 {
-	if ((x < 0) || (x >= this->_bufferWidth) || (y < 0) || (y >= this->_bufferHeight))
+	if ((x < 0) || (x >= this->_width) || (y < 0) || (y >= this->_height))
 	{
 		return;
 	}
@@ -475,7 +473,7 @@ void ERMCH1115::drawPixel(int16_t x, int16_t y, uint8_t colour)
 		y = HEIGHT - 1 - temp;
 	break;
 	}
-	uint16_t tc = (_bufferWidth * (y / 8)) + x;
+	uint16_t tc = (_OLED_WIDTH * (y / 8)) + x;
 	switch (colour)
 	{
 	case WHITE:

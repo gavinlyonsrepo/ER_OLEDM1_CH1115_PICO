@@ -143,10 +143,8 @@ private:
 
 	int16_t _OLED_WIDTH = 128;					/**< Width of OLED Screen in pixels */
 	int16_t _OLED_HEIGHT = 64;					/**< Height of OLED Screen in pixels */
-	uint8_t _bufferWidth = 128;					/**< Width of Screen Buffer */
-	uint8_t _bufferHeight = 64;					/**< Height of Screen Buffer */
 	int8_t _OLED_PAGE_NUM = (_OLED_HEIGHT / 8); /**< Number of byte size pages OLED screen is divided into */
 	uint8_t *_OLEDbuffer = nullptr;				/**< Pointer to screen buffer data*/
 
-	const uint16_t _OLEDLibVerNum = 133; /**< Library version number 133 = 1.3.3*/
+	const uint16_t _OLEDLibVerNum = 134; /**< Library version number 133 = 1.3.3*/
 };// end of class

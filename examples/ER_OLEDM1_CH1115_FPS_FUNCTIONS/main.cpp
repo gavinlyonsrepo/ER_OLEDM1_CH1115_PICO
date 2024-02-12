@@ -191,6 +191,8 @@ void Test507(void)
 	myOLED.OLEDclearBuffer();
 	myOLED.setCursor(5,5 );
 	myOLED.print("r 90");
+	myOLED.setCursor(5,110);
+	myOLED.print("bottom");
 	myOLED.OLEDupdate();
 	busy_wait_ms(3000);
 	
@@ -198,6 +200,8 @@ void Test507(void)
 	myOLED.OLEDclearBuffer();
 	myOLED.setCursor(5,5 );
 	myOLED.print("r 180");
+	myOLED.setCursor(5,50);
+	myOLED.print("bottom");
 	myOLED.OLEDupdate();
 	busy_wait_ms(3000);
 	
@@ -205,6 +209,8 @@ void Test507(void)
 	myOLED.OLEDclearBuffer();
 	myOLED.setCursor(5,5 );
 	myOLED.print("r 270");
+	myOLED.setCursor(5,110);
+	myOLED.print("bottom");
 	myOLED.OLEDupdate();
 	busy_wait_ms(3000);
 	
@@ -212,6 +218,8 @@ void Test507(void)
 	myOLED.OLEDclearBuffer();
 	myOLED.setCursor(5,5 );
 	myOLED.print("r 0");
+	myOLED.setCursor(5,50);
+	myOLED.print("bottom");
 	myOLED.OLEDupdate();
 	busy_wait_ms(3000);
 	myOLED.OLEDclearBuffer();
