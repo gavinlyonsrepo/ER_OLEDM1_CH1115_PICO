@@ -123,25 +123,19 @@ To remove an unwanted font from project simply comment out or delete.
 
 The new ASCII font must have following font structure.
 First 4 bytes are control bytes followed by vertically addressed font data.
+Also the fonts height(or y-size) must be divisible evenly by 8. 
 
 ```
 // An 4 by 8 character size font starting at 
-// ASCII offset 0x30 in ASCII table with 0x02 characters in font. 
+// ASCII offset 0x30 in ASCII table with 2 characters in font. 
 // 0 and 1 
-static const uint8_t FontBinaryExample[] =
+static const uint8_t FontBinaryExample[12] =
 {
-0x04, 0x08, 0x30, 0x02,   // x-size, y-size, offset, total characters
-(data),(data),(data),(data) // font data '0'
-(data),(data),(data),(data) // font data '1'
+0x04, 0x08, 0x30, 0x01,   // x-size, y-size, start offset, (last character-offset : 0x31-0x30)
+(data),(data),(data),(data) // font data '0' 0x30
+(data),(data),(data),(data) // font data '1' 0x31
 }
 ```
-
-Some of the fonts packaged with library came from [URL](http://rinkydinkelectronics.com/).
-If user has picture of a font like so.
-
-![ font ](https://github.com/gavinlyonsrepo/SSD1306_OLED_PICO/blob/main/extra/image/hallfetica_normal.png)
-
-There is a monochrome font maker at [URL link](http://rinkydinkelectronics.com/t_make_font_file_mono.php)
 
 ### Bitmaps
 
